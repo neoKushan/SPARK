@@ -82,11 +82,11 @@ export function aggregateByWeek(data: ConsumptionDataPoint[]): AggregatedData[] 
 export function aggregateByMonth(data: ConsumptionDataPoint[]): AggregatedData[] {
   const grouped = groupBy(data, (point) => format(startOfMonth(point.start), 'yyyy-MM'));
   return Array.from(grouped.entries())
+    .sort((a, b) => a[0].localeCompare(b[0])) // Sort by yyyy-MM key first
     .map(([month, points]) => {
       const monthLabel = format(new Date(month + '-01'), 'MMM yyyy');
       return createAggregatedData(monthLabel, points);
-    })
-    .sort((a, b) => a.period.localeCompare(b.period));
+    });
 }
 
 /**
