@@ -45,6 +45,7 @@ interface DataState {
   deleteRatePeriod: (id: string) => void;
   setRatePeriods: (periods: RatePeriod[]) => void;
   setTariff: (tariffId: string) => void;
+  setCustomTariff: () => void;
   setExportRate: (rate: number) => void;
 
   // Actions for battery
@@ -169,6 +170,9 @@ export const useDataStore = create<DataState>()(
           });
         }
       },
+
+      setCustomTariff: () =>
+        set({ currentTariffId: null }),
 
       setExportRate: (rate) =>
         set({ exportRate: rate }),

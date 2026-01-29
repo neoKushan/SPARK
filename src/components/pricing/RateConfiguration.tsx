@@ -15,6 +15,7 @@ export function RateConfiguration() {
     deleteRatePeriod,
     addRatePeriod,
     setTariff,
+    setCustomTariff,
     setExportRate,
   } = useDataStore();
 
@@ -61,7 +62,8 @@ export function RateConfiguration() {
 
   const handleTariffChange = (tariffId: string) => {
     if (tariffId === 'custom') {
-      // Keep current rates but clear tariff ID
+      // Keep current rates but clear tariff ID to mark as custom
+      setCustomTariff();
       return;
     }
     setTariff(tariffId);
