@@ -1,0 +1,202 @@
+import { useMemo, useState } from 'react';
+import { Calendar, TrendingUp, BarChart3, DollarSign, Battery } from 'lucide-react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { ConsumptionChart } from './ConsumptionChart';
+import { PricingOverview } from '../pricing/PricingOverview';
+import { BatteryCalculator } from '../battery/BatteryCalculator';
+import { useDataStore } from '@/context/DataContext';
+import { aggregateByTimeFrame, calculateStatistics } from '@/utils/aggregationUtils';
+import { format } from 'date-fns';
+import type { TimeFrame } from '@/types/consumption';
+
+export function Dashboard() {
+  const { consumptionData, selectedTimeFrame, setSelectedTimeFrame, dateRange } = useDataStore();
+  const [activeTab, setActiveTab] = useState('consumption');
+
+  // Calculate statistics
+  const stats = useMemo(() => calculateStatistics(consumptionData), [consumptionData]);
+
+  // Aggregate data based on selected time frame
+  const aggregatedData = useMemo(
+    () => aggregateByTimeFrame(consumptionData, selectedTimeFrame),
+    [consumptionData, selectedTimeFrame]
+  );
+
+  const timeFrames: { value: TimeFrame; label: string }[] = [
+    { value: 'day', label: 'Daily' },
+    { value: 'week', label: 'Weekly' },
+    { value: 'month', label: 'Monthly' },
+    { value: 'all', label: 'All Data' },
+  ];
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div>
+        <h2 className="text-3xl font-bold tracking-tight">Energy Dashboard</h2>
+        {dateRange && (
+          <p className="text-muted-foreground mt-1">
+            <Calendar className="w-4 h-4 inline mr-1" />
+            {format(dateRange.start, 'MMM dd, yyyy')} - {format(dateRange.end, 'MMM dd, yyyy')}
+          </p>
+        )}
+      </div>
+
+      {/* Tabs */}
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <TabsList className="grid w-full grid-cols-3 lg:w-auto">
+          <TabsTrigger value="consumption" className="gap-2">
+            <BarChart3 className="w-4 h-4" />
+            Consumption
+          </TabsTrigger>
+          <TabsTrigger value="pricing" className="gap-2">
+            <DollarSign className="w-4 h-4" />
+            Pricing
+          </TabsTrigger>
+          <TabsTrigger value="battery" className="gap-2">
+            <Battery className="w-4 h-4" />
+            Battery
+          </TabsTrigger>
+        </TabsList>
+
+        {/* Consumption Tab */}
+        <TabsContent value="consumption" className="space-y-6">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <h3 className="text-xl font-semibold">Energy Consumption Analysis</h3>
+            <div className="flex gap-2">
+              {timeFrames.map((tf) => (
+                <Button
+                  key={tf.value}
+                  variant={selectedTimeFrame === tf.value ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setSelectedTimeFrame(tf.value)}
+                >
+                  {tf.label}
+                </Button>
+              ))}
+            </div>
+          </div>
+
+          {/* Statistics Cards */}
+          {stats && (
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Total Consumption</CardTitle>
+                  <TrendingUp className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{stats.totalConsumption.toFixed(2)} kWh</div>
+                  <p className="text-xs text-muted-foreground">
+                    {stats.dataPoints} data points
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Average Consumption</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{stats.averageConsumption.toFixed(3)} kWh</div>
+                  <p className="text-xs text-muted-foreground">
+                    Per 30-minute interval
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Peak Consumption</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{stats.maxConsumption.toFixed(3)} kWh</div>
+                  <p className="text-xs text-muted-foreground">
+                    Maximum in a single period
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Minimum Consumption</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{stats.minConsumption.toFixed(3)} kWh</div>
+                  <p className="text-xs text-muted-foreground">
+                    Lowest recorded period
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+
+          {/* Main Chart */}
+          <ConsumptionChart
+            data={consumptionData}
+            timeFrame={selectedTimeFrame}
+            title={`Energy Consumption - ${timeFrames.find((t) => t.value === selectedTimeFrame)?.label}`}
+            showArea={true}
+          />
+
+          {/* Aggregated Data Table */}
+          {aggregatedData.length > 0 && selectedTimeFrame !== 'all' && (
+            <Card>
+              <CardHeader>
+                <CardTitle>
+                  {timeFrames.find((t) => t.value === selectedTimeFrame)?.label} Breakdown
+                </CardTitle>
+                <CardDescription>
+                  Consumption aggregated by {selectedTimeFrame}
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="relative w-full overflow-auto">
+                  <table className="w-full caption-bottom text-sm">
+                    <thead className="border-b">
+                      <tr className="border-b transition-colors hover:bg-muted/50">
+                        <th className="h-12 px-4 text-left align-middle font-medium">Period</th>
+                        <th className="h-12 px-4 text-left align-middle font-medium">Total (kWh)</th>
+                        <th className="h-12 px-4 text-left align-middle font-medium">Average (kWh)</th>
+                        <th className="h-12 px-4 text-left align-middle font-medium">Peak (kWh)</th>
+                        <th className="h-12 px-4 text-left align-middle font-medium">Peak Time</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {aggregatedData.map((row, index) => (
+                        <tr
+                          key={index}
+                          className="border-b transition-colors hover:bg-muted/50"
+                        >
+                          <td className="p-4 align-middle">{row.period}</td>
+                          <td className="p-4 align-middle">{row.totalConsumption.toFixed(2)}</td>
+                          <td className="p-4 align-middle">{row.averageConsumption.toFixed(3)}</td>
+                          <td className="p-4 align-middle">{row.peakConsumption.toFixed(3)}</td>
+                          <td className="p-4 align-middle">
+                            {format(row.peakTime, 'MMM dd, HH:mm')}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </TabsContent>
+
+        {/* Pricing Tab */}
+        <TabsContent value="pricing">
+          <PricingOverview />
+        </TabsContent>
+
+        {/* Battery Tab */}
+        <TabsContent value="battery">
+          <BatteryCalculator />
+        </TabsContent>
+      </Tabs>
+    </div>
+  );
+}
