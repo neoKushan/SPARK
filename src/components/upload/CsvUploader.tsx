@@ -142,19 +142,19 @@ export function CsvUploader() {
               </div>
 
               <div>
-                <p className="font-medium mb-2">Step 2: Navigate to Usage & Costs</p>
+                <p className="font-medium mb-2">Step 2: Navigate to My Energy</p>
                 <p className="text-muted-foreground">
-                  From your dashboard, click on "Usage" in the left sidebar menu.
+                  From your dashboard, click on "My Energy" in the navigation menu.
                 </p>
               </div>
 
               <div>
                 <p className="font-medium mb-2">Step 3: Download your data</p>
                 <ol className="list-decimal list-inside space-y-1 text-muted-foreground ml-2">
-                  <li>Scroll down to the "Download your data" section</li>
-                  <li>Select your date range (you can go back up to 2 years)</li>
-                  <li>Choose "30 min" as the interval</li>
-                  <li>Select "Electricity" (or Gas if you want gas data)</li>
+                  <li>Scroll down to the "Get your energy geek on" section</li>
+                  <li>Select "Electricity" from the dropdown</li>
+                  <li>Choose your date range (you can go back up to 2 years)</li>
+                  <li>Select "30 min" as the interval</li>
                   <li>Click "Download CSV"</li>
                 </ol>
               </div>
