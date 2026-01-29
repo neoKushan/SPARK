@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react';
-import { Upload, FileText, AlertCircle, CheckCircle } from 'lucide-react';
+import { Upload, FileText, AlertCircle, CheckCircle, ExternalLink, ChevronDown, ChevronUp } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { parseEnergyConsumptionCsv, validateFile } from '@/utils/csvParser';
@@ -10,6 +10,7 @@ export function CsvUploader() {
   const [isDragging, setIsDragging] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showInstructions, setShowInstructions] = useState(false);
   const { setConsumptionData, fileName, dateRange } = useDataStore();
 
   const handleFile = useCallback(
@@ -90,6 +91,70 @@ export function CsvUploader() {
         </CardDescription>
       </CardHeader>
       <CardContent>
+        {/* Octopus Energy Export Instructions */}
+        <div className="mb-6">
+          <button
+            onClick={() => setShowInstructions(!showInstructions)}
+            className="flex items-center gap-2 text-sm font-medium text-primary hover:underline"
+          >
+            {showInstructions ? (
+              <ChevronUp className="w-4 h-4" />
+            ) : (
+              <ChevronDown className="w-4 h-4" />
+            )}
+            How to export data from Octopus Energy
+          </button>
+
+          {showInstructions && (
+            <div className="mt-4 p-4 bg-muted/50 rounded-lg space-y-4 text-sm">
+              <div>
+                <p className="font-medium mb-2">Step 1: Log in to your Octopus Energy account</p>
+                <a
+                  href="https://octopus.energy/dashboard/login/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-primary hover:underline flex items-center gap-1"
+                >
+                  https://octopus.energy/dashboard/login/
+                  <ExternalLink className="w-3 h-3" />
+                </a>
+              </div>
+
+              <div>
+                <p className="font-medium mb-2">Step 2: Navigate to Usage & Costs</p>
+                <p className="text-muted-foreground">
+                  From your dashboard, click on "Usage" in the left sidebar menu.
+                </p>
+              </div>
+
+              <div>
+                <p className="font-medium mb-2">Step 3: Download your data</p>
+                <ol className="list-decimal list-inside space-y-1 text-muted-foreground ml-2">
+                  <li>Scroll down to the "Download your data" section</li>
+                  <li>Select your date range (you can go back up to 2 years)</li>
+                  <li>Choose "30 min" as the interval</li>
+                  <li>Select "Electricity" (or Gas if you want gas data)</li>
+                  <li>Click "Download CSV"</li>
+                </ol>
+              </div>
+
+              <div>
+                <p className="font-medium mb-2">Step 4: Upload the file</p>
+                <p className="text-muted-foreground">
+                  Once downloaded, drag and drop the CSV file below or click to browse for it.
+                </p>
+              </div>
+
+              <div className="p-3 bg-blue-500/10 border border-blue-500/20 rounded text-xs">
+                <p className="font-medium text-blue-700 dark:text-blue-300 mb-1">💡 Tip</p>
+                <p className="text-blue-600 dark:text-blue-400">
+                  For best results, download at least 1-2 months of data to get accurate battery recommendations and cost analysis.
+                </p>
+              </div>
+            </div>
+          )}
+        </div>
+
         {!fileName ? (
           <div
             onDrop={handleDrop}
