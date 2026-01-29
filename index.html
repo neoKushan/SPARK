@@ -5,6 +5,24 @@
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>OctoView - Energy Consumption Visualizer</title>
+    <script>
+      // Apply dark mode immediately to prevent flash
+      try {
+        const stored = localStorage.getItem('octoview-storage');
+        if (stored) {
+          const data = JSON.parse(stored);
+          if (data.state?.darkMode !== false) {
+            document.documentElement.classList.add('dark');
+          }
+        } else {
+          // Default to dark mode if no preference stored
+          document.documentElement.classList.add('dark');
+        }
+      } catch (e) {
+        // Default to dark mode on error
+        document.documentElement.classList.add('dark');
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>

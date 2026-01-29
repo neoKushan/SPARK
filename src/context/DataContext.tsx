@@ -94,7 +94,7 @@ export const useDataStore = create<DataState>()(
       customBatteryConfigs: [],
       selectedTimeFrame: 'day',
       customDateRange: null,
-      darkMode: false,
+      darkMode: true,
 
       // Consumption data actions
       setConsumptionData: (data, fileName) =>
@@ -202,6 +202,14 @@ export const useDataStore = create<DataState>()(
         darkMode: state.darkMode,
         // Don't persist consumption data (too large for localStorage)
       }),
+      onRehydrateStorage: () => (state) => {
+        // Apply dark mode immediately on rehydration to prevent flash
+        if (state?.darkMode) {
+          document.documentElement.classList.add('dark');
+        } else {
+          document.documentElement.classList.remove('dark');
+        }
+      },
     }
   )
 );
