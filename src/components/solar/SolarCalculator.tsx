@@ -52,11 +52,11 @@ export function SolarCalculator() {
                 config.orientation === solarConfig.orientation &&
                 config.tilt === solarConfig.tilt);
       });
-      if (index !== -1) {
+      if (index !== -1 && index !== selectedConfig) {
         setSelectedConfig(index);
       }
     }
-  }, [solarConfig, allConfigs]);
+  }, [solarConfig]);
 
   // Use current solar config or selected config
   const currentConfig: SolarConfig | null = solarConfig !== undefined ? solarConfig : allConfigs[selectedConfig];

@@ -53,11 +53,11 @@ export function BatteryCalculator() {
                 config.chargeRate === batteryConfig.chargeRate &&
                 config.dischargeRate === batteryConfig.dischargeRate);
       });
-      if (index !== -1) {
+      if (index !== -1 && index !== selectedConfig) {
         setSelectedConfig(index);
       }
     }
-  }, [batteryConfig, allConfigs]);
+  }, [batteryConfig]);
 
   // Use current battery config or selected config
   const currentConfig: BatteryConfig | null = batteryConfig !== undefined ? batteryConfig : allConfigs[selectedConfig];

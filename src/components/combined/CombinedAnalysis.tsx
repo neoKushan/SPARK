@@ -20,6 +20,7 @@ import { simulateBattery } from '@/utils/batterySimulator';
 import { calculateTotalCost } from '@/utils/pricingCalculator';
 import { encodeStateToUrl, type ConsumptionSummary } from '@/utils/urlState';
 import { differenceInDays, format } from 'date-fns';
+import { getTariffPresets } from '@/utils/tariffPresets';
 
 export function CombinedAnalysis() {
   const {
@@ -29,10 +30,25 @@ export function CombinedAnalysis() {
     solarConfig,
     batteryConfig,
     fileName,
+    currentTariffId,
+    customTariffName,
   } = useDataStore();
 
   const [copied, setCopied] = useState(false);
   const isSharedConfig = fileName?.includes('Shared Configuration');
+
+  // Get current tariff details
+  const currentTariff = useMemo(() => {
+    if (currentTariffId === null) {
+      return {
+        provider: 'Custom',
+        name: customTariffName,
+      };
+    }
+    const tariffPresets = getTariffPresets();
+    const tariff = tariffPresets.find((t) => t.id === currentTariffId);
+    return tariff ? { provider: tariff.provider, name: tariff.name } : null;
+  }, [currentTariffId, customTariffName]);
 
   // Calculate consumption summary for display
   const consumptionSummary = useMemo(() => {
@@ -557,6 +573,11 @@ export function CombinedAnalysis() {
             <Info className="w-4 h-4" />
             Rate Configuration
           </CardTitle>
+          {currentTariff && (
+            <CardDescription>
+              {currentTariff.provider} - {currentTariff.name}
+            </CardDescription>
+          )}
         </CardHeader>
         <CardContent>
           <div className="grid gap-3 md:grid-cols-2 text-sm">
