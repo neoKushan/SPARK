@@ -21,6 +21,8 @@ interface DataState {
   ratePeriods: RatePeriod[];
   currentTariffId: string | null;
   exportRate: number;
+  customTariffName: string;
+  customStandingCharge: number;
 
   // Battery configuration
   batteryConfig: BatteryConfig | null;
@@ -47,6 +49,8 @@ interface DataState {
   setTariff: (tariffId: string) => void;
   setCustomTariff: () => void;
   setExportRate: (rate: number) => void;
+  setCustomTariffName: (name: string) => void;
+  setCustomStandingCharge: (charge: number) => void;
 
   // Actions for battery
   setBatteryConfig: (config: BatteryConfig | null) => void;
@@ -110,6 +114,8 @@ export const useDataStore = create<DataState>()(
       ratePeriods: defaultRatePeriods,
       currentTariffId: 'octopus-intelligent-go',
       exportRate: 0.15,
+      customTariffName: 'My Custom Tariff',
+      customStandingCharge: 55,
       batteryConfig: defaultBatteryConfig,
       customBatteryConfigs: [],
       solarConfig: null,
@@ -176,6 +182,12 @@ export const useDataStore = create<DataState>()(
 
       setExportRate: (rate) =>
         set({ exportRate: rate }),
+
+      setCustomTariffName: (name) =>
+        set({ customTariffName: name }),
+
+      setCustomStandingCharge: (charge) =>
+        set({ customStandingCharge: charge }),
 
       // Battery actions
       setBatteryConfig: (config) =>
@@ -262,6 +274,8 @@ export const useDataStore = create<DataState>()(
         ratePeriods: state.ratePeriods,
         currentTariffId: state.currentTariffId,
         exportRate: state.exportRate,
+        customTariffName: state.customTariffName,
+        customStandingCharge: state.customStandingCharge,
         batteryConfig: state.batteryConfig,
         customBatteryConfigs: state.customBatteryConfigs,
         solarConfig: state.solarConfig,

@@ -11,12 +11,16 @@ export function RateConfiguration() {
     ratePeriods,
     currentTariffId,
     exportRate,
+    customTariffName,
+    customStandingCharge,
     updateRatePeriod,
     deleteRatePeriod,
     addRatePeriod,
     setTariff,
     setCustomTariff,
     setExportRate,
+    setCustomTariffName,
+    setCustomStandingCharge,
   } = useDataStore();
 
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -97,7 +101,7 @@ export function RateConfiguration() {
             </select>
           </div>
 
-          {currentTariff && (
+          {currentTariff ? (
             <div className="p-4 bg-muted/50 rounded-lg space-y-2">
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium">Export Rate:</span>
@@ -114,6 +118,29 @@ export function RateConfiguration() {
                   <strong>Note:</strong> {currentTariff.notes}
                 </div>
               )}
+            </div>
+          ) : (
+            <div className="space-y-3 p-4 bg-muted/50 rounded-lg">
+              <div>
+                <label className="text-sm font-medium mb-1 block">Tariff Name</label>
+                <input
+                  type="text"
+                  value={customTariffName}
+                  onChange={(e) => setCustomTariffName(e.target.value)}
+                  placeholder="e.g., My Energy Plan"
+                  className="w-full px-3 py-2 border rounded-md bg-background"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium mb-1 block">Standing Charge (p/day)</label>
+                <input
+                  type="number"
+                  step="0.1"
+                  value={customStandingCharge}
+                  onChange={(e) => setCustomStandingCharge(parseFloat(e.target.value))}
+                  className="w-full px-3 py-2 border rounded-md bg-background"
+                />
+              </div>
             </div>
           )}
 

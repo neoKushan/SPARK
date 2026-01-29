@@ -21,15 +21,44 @@ export function TariffComparison() {
     consumptionData,
     solarConfig,
     batteryConfig,
+    currentTariffId,
+    ratePeriods,
+    exportRate,
+    customTariffName,
+    customStandingCharge,
   } = useDataStore();
 
   const tariffPresets = getTariffPresets();
+
+  // Create custom tariff object from current state
+  const customTariff: EnergyTariff | null = useMemo(() => {
+    if (currentTariffId === null) {
+      return {
+        id: 'custom',
+        provider: 'Custom',
+        name: customTariffName,
+        ratePeriods: ratePeriods,
+        exportRate: exportRate,
+        standingCharge: customStandingCharge,
+        notes: 'Your custom configured tariff',
+      };
+    }
+    return null;
+  }, [currentTariffId, customTariffName, ratePeriods, exportRate, customStandingCharge]);
+
+  // Include custom tariff in the list if it exists
+  const allTariffs = useMemo(() => {
+    if (customTariff) {
+      return [...tariffPresets, customTariff];
+    }
+    return tariffPresets;
+  }, [tariffPresets, customTariff]);
 
   // Analyze each tariff with current solar/battery configuration
   const tariffAnalysis = useMemo<TariffAnalysisResult[]>(() => {
     if (consumptionData.length === 0) return [];
 
-    return tariffPresets.map((tariff) => {
+    return allTariffs.map((tariff) => {
       let annualSavings = 0;
       let paybackPeriod = Infinity;
       let totalSystemCost = 0;
@@ -86,7 +115,7 @@ export function TariffComparison() {
         offPeakHours: calculateOffPeakHours(tariff),
       };
     });
-  }, [consumptionData, solarConfig, batteryConfig, tariffPresets]);
+  }, [consumptionData, solarConfig, batteryConfig, allTariffs]);
 
   // Sort by annual savings (best first)
   const sortedAnalysis = useMemo(() => {
