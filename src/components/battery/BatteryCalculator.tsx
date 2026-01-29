@@ -53,7 +53,7 @@ export function BatteryCalculator() {
                 config.chargeRate === batteryConfig.chargeRate &&
                 config.dischargeRate === batteryConfig.dischargeRate);
       });
-      if (index !== -1 && index !== selectedConfig) {
+      if (index !== -1) {
         setSelectedConfig(index);
       }
     }

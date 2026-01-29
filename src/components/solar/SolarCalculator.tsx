@@ -51,7 +51,7 @@ export function SolarCalculator() {
                 config.orientation === solarConfig.orientation &&
                 config.tilt === solarConfig.tilt);
       });
-      if (index !== -1 && index !== selectedConfig) {
+      if (index !== -1) {
         setSelectedConfig(index);
       }
     }
