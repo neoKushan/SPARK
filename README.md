@@ -1,12 +1,15 @@
 # OctoView - Energy Consumption Visualizer
 
+> **Note:** This project was created almost entirely using Large Language Models (LLMs), specifically Claude Code. The design, implementation, and documentation were generated through AI assistance.
+
 A beautiful, interactive web application for visualizing and analyzing energy consumption data from CSV files. Built specifically for Octopus Energy users but compatible with any similar 30-minute interval energy data.
 
 ## Features
 
 ### 📊 **Consumption Visualization**
-- Interactive charts with Recharts
-- Multiple time frame views (Daily, Weekly, Monthly, All Data)
+- Interactive charts with zoom and pan capabilities
+- Multiple time frame views (Raw Data, Daily, Weekly, Monthly)
+- Toggle between kWh and Cost (£) views
 - Detailed statistics and peak consumption analysis
 - Aggregated data tables with breakdown by period
 
@@ -15,23 +18,33 @@ A beautiful, interactive web application for visualizing and analyzing energy co
 - Calculate total and estimated annual costs
 - Cost breakdown by rate period
 - Average effective rate calculation
-- Handles cross-midnight periods (23:30-05:00)
+- Handles cross-midnight periods (23:30-05:30)
+- Add, edit, and delete custom rate periods
 
 ### 🔋 **Battery Calculator**
 - Simulate battery performance and savings
-- Common battery size presets (5kWh, 10kWh, 13.5kWh, 20kWh)
+- **Three Analysis Modes:**
+  - **Analysis**: Detailed savings breakdown for selected battery
+  - **Compare**: Side-by-side comparison of all battery options with ROI
+  - **Custom Batteries**: Add and manage your own battery configurations
+- Common battery size presets with realistic costs:
+  - Small (5 kWh) - £3,500
+  - Medium (10 kWh) - £6,000
+  - Large (13.5 kWh - Powerwall 2) - £8,000
+  - Extra Large (20 kWh) - £12,000
 - Smart battery size recommendations based on your consumption
 - Detailed savings analysis:
   - Annual savings estimate
-  - Payback period
+  - Accurate payback period based on actual costs
   - Self-sufficiency rate
   - Peak shaving benefits
+  - ROI comparison
 - Winter coverage analysis
 - Savings breakdown by rate period
 
 ### 🎨 **Beautiful UI**
 - Modern, clean design with Tailwind CSS
-- Dark mode support
+- Dark mode by default (with light mode toggle)
 - Fully responsive (mobile/tablet/desktop)
 - Smooth animations and transitions
 - Accessible components
@@ -43,7 +56,8 @@ A beautiful, interactive web application for visualizing and analyzing energy co
 - **Vite** - Fast build tool
 - **Recharts** - Data visualization
 - **Tailwind CSS** - Styling
-- **Zustand** - State management
+- **shadcn/ui** - UI components
+- **Zustand** - State management with localStorage persistence
 - **date-fns** - Date handling
 - **PapaParse** - CSV parsing
 
@@ -57,7 +71,7 @@ A beautiful, interactive web application for visualizing and analyzing energy co
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/OctoView.git
+git clone https://github.com/neoKushan/OctoView.git
 cd OctoView
 
 # Install dependencies
@@ -73,14 +87,11 @@ npm run build
 npm run preview
 ```
 
-### Deployment to GitHub Pages
+### Deployment
 
-```bash
-# Build and deploy
-npm run deploy
-```
+This project is configured to automatically deploy to GitHub Pages using GitHub Actions. Simply push to the `main` branch and the workflow will build and deploy the site.
 
-The site will be deployed to `https://yourusername.github.io/OctoView/`
+The live site is available at: https://octoview.stevedonaghy.com
 
 ## Usage
 
@@ -94,20 +105,24 @@ The site will be deployed to `https://yourusername.github.io/OctoView/`
      ```
 
 2. **View Consumption**
-   - Switch between Daily, Weekly, Monthly views
-   - Explore interactive charts
+   - Switch between Raw Data, Daily, Weekly, Monthly views
+   - Toggle between kWh and Cost views
+   - Use the brush component to zoom into specific time periods
    - Review aggregated statistics
 
 3. **Configure Pricing**
    - Navigate to the "Pricing" tab
-   - Default rates are pre-configured
+   - Edit existing rate periods or add new ones
    - View cost breakdowns and annual estimates
+   - Rates are automatically saved to browser storage
 
 4. **Calculate Battery Savings**
    - Go to the "Battery" tab
-   - See recommended battery size
-   - Select from common battery configurations
-   - Review detailed savings analysis
+   - **Analysis Tab**: See recommended battery size and detailed savings for selected battery
+   - **Compare Tab**: View side-by-side comparison of all batteries with ROI
+   - **Custom Batteries Tab**: Add your own battery configurations with custom costs
+   - Select from preset battery configurations or create custom ones
+   - Review detailed savings analysis and payback periods
 
 ## CSV Data Format
 
@@ -123,11 +138,11 @@ Compatible with Octopus Energy export format.
 
 ### Rate Configuration
 
-Default configuration includes:
-- **Cheap Rate**: 23:30 - 05:00 @ £0.075/kWh
-- **Standard Rate**: 05:00 - 23:30 @ £0.245/kWh
+Default configuration includes (Intelligent Octopus Go):
+- **Cheap Rate**: 23:30 - 05:30 @ £0.07/kWh (7.00p/kWh)
+- **Standard Rate**: 05:30 - 23:30 @ £0.3051/kWh (30.51p/kWh)
 
-Rate periods are stored in browser localStorage.
+Rate periods are fully customizable and stored in browser localStorage.
 
 ### Battery Simulation
 
@@ -136,13 +151,32 @@ The battery simulator:
 - Discharges during expensive rate periods
 - Applies roundtrip efficiency losses (default 90%)
 - Respects charge/discharge rate limits
-- Maintains minimum state of charge
+- Maintains configurable minimum state of charge (default 10%)
+- Uses actual battery costs for accurate payback calculations
+
+### Custom Battery Configurations
+
+Add your own battery options with:
+- Custom name (e.g., "Tesla Powerwall 3")
+- Capacity in kWh
+- Charge and discharge rates in kW
+- Roundtrip efficiency percentage
+- Upfront cost in £ for accurate ROI calculations
+
+### Battery Comparison
+
+The comparison view shows:
+- All battery configurations (presets + custom) side-by-side
+- Cost, annual savings, payback period, self-sufficiency, and ROI for each
+- Highlights the battery with the best ROI
+- Both table and card layouts for easy comparison
 
 ### Data Storage
 
 - CSV data is kept in memory (not persisted)
 - Rate configurations persist in localStorage
 - Battery configurations persist in localStorage
+- Custom battery configurations persist in localStorage
 - Dark mode preference persists
 
 ## Development
@@ -154,9 +188,12 @@ OctoView/
 ├── src/
 │   ├── components/          # React components
 │   │   ├── battery/        # Battery calculator components
+│   │   │   ├── BatteryCalculator.tsx    # Main battery calculator with tabs
+│   │   │   ├── BatteryComparison.tsx    # Battery comparison view
+│   │   │   └── BatteryConfigurator.tsx  # Custom battery configuration
 │   │   ├── layout/         # Layout components (Header, etc.)
 │   │   ├── pricing/        # Pricing components
-│   │   ├── ui/             # Reusable UI primitives
+│   │   ├── ui/             # Reusable UI primitives (shadcn/ui)
 │   │   ├── upload/         # CSV upload component
 │   │   └── visualization/  # Chart and dashboard components
 │   ├── context/            # State management (Zustand)
@@ -174,18 +211,25 @@ OctoView/
 ### Key Algorithms
 
 #### Time Aggregation
-Groups 30-minute intervals into larger periods (day, week, month) with statistics.
+Groups 30-minute intervals into larger periods (day, week, month) with statistics including totals, averages, and peak values.
 
 #### Rate Matching
-Matches timestamps to rate periods, handling cross-midnight periods correctly.
+Matches timestamps to rate periods, correctly handling cross-midnight periods (e.g., 23:30-05:30).
 
 #### Battery Simulation
 ```
 For each 30-minute interval:
   - During cheap rate: charge battery (if space available)
   - During expensive rate: discharge battery (if charge available)
-  - Apply efficiency losses
-  - Calculate savings
+  - Apply roundtrip efficiency losses
+  - Calculate savings: (expensive rate - cheap rate) × energy from battery
+  - Track state of charge and battery action
+```
+
+#### ROI Calculation
+```
+ROI % = (Annual Savings / Upfront Cost) × 100
+Payback Period = Upfront Cost / Annual Savings
 ```
 
 ## Contributing
@@ -199,13 +243,11 @@ MIT License - feel free to use this project for any purpose.
 ## Acknowledgments
 
 - Built with React and modern web technologies
-- Designed for Octopus Energy users
+- Designed for Octopus Energy users (Intelligent Octopus Go tariff)
 - Inspired by the need for better energy consumption insights
+- UI components from shadcn/ui
+- Created with assistance from Claude Code (Anthropic)
 
 ## Support
 
 For issues, questions, or feature requests, please open an issue on GitHub.
-
----
-
-**Made with ⚡ by Claude Code**
