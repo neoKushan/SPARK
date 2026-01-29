@@ -24,11 +24,25 @@ export function Dashboard() {
     [consumptionData, selectedTimeFrame]
   );
 
+  // Convert aggregated data to chart format
+  const chartData = useMemo(() => {
+    if (selectedTimeFrame === 'all') {
+      return consumptionData;
+    }
+
+    // For aggregated views, create synthetic data points for the chart
+    return aggregatedData.map((agg) => ({
+      consumption: agg.totalConsumption,
+      start: agg.peakTime, // Use peak time as the timestamp for positioning
+      end: agg.peakTime,
+    }));
+  }, [consumptionData, aggregatedData, selectedTimeFrame]);
+
   const timeFrames: { value: TimeFrame; label: string }[] = [
+    { value: 'all', label: 'Raw Data' },
     { value: 'day', label: 'Daily' },
     { value: 'week', label: 'Weekly' },
     { value: 'month', label: 'Monthly' },
-    { value: 'all', label: 'All Data' },
   ];
 
   return (
@@ -135,7 +149,7 @@ export function Dashboard() {
 
           {/* Main Chart */}
           <ConsumptionChart
-            data={consumptionData}
+            data={chartData}
             timeFrame={selectedTimeFrame}
             title={`Energy Consumption - ${timeFrames.find((t) => t.value === selectedTimeFrame)?.label}`}
             showArea={true}

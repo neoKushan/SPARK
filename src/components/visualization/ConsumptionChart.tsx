@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import {
   LineChart,
   Line,
@@ -10,6 +10,7 @@ import {
   Tooltip,
   Legend,
   ResponsiveContainer,
+  Brush,
 } from 'recharts';
 import { format } from 'date-fns';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -28,6 +29,9 @@ export function ConsumptionChart({
   title = 'Energy Consumption',
   showArea = true,
 }: ConsumptionChartProps) {
+  const [brushStart, setBrushStart] = useState<number | undefined>(undefined);
+  const [brushEnd, setBrushEnd] = useState<number | undefined>(undefined);
+
   // Transform data for Recharts
   const chartData = useMemo(() => {
     return data.map((point) => ({
@@ -41,12 +45,14 @@ export function ConsumptionChart({
   const formatXAxis = (timestamp: number) => {
     const date = new Date(timestamp);
     switch (timeFrame) {
+      case 'all':
+        return format(date, 'MMM dd HH:mm');
       case 'day':
-        return format(date, 'HH:mm');
-      case 'week':
-        return format(date, 'EEE dd');
-      case 'month':
         return format(date, 'MMM dd');
+      case 'week':
+        return format(date, 'MMM dd');
+      case 'month':
+        return format(date, 'MMM yyyy');
       case 'year':
         return format(date, 'MMM yyyy');
       default:
@@ -115,24 +121,92 @@ export function ConsumptionChart({
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <ResponsiveContainer width="100%" height={400}>
+        <div className="text-xs text-muted-foreground mb-2">
+          {data.length > 50 ? 'Drag the slider below to zoom into specific time periods' : ''}
+        </div>
+        <ResponsiveContainer width="100%" height={450}>
           {showArea ? (
-            <AreaChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+            <AreaChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 50 }}>
               <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-              <XAxis dataKey="timestamp" tickFormatter={formatXAxis} className="text-xs" stroke="hsl(var(--muted-foreground))" />
-              <YAxis label={{ value: 'kWh', angle: -90, position: 'insideLeft' }} className="text-xs" stroke="hsl(var(--muted-foreground))" />
+              <XAxis
+                dataKey="timestamp"
+                tickFormatter={formatXAxis}
+                className="text-xs"
+                stroke="hsl(var(--muted-foreground))"
+                domain={brushStart && brushEnd ? [brushStart, brushEnd] : ['auto', 'auto']}
+              />
+              <YAxis
+                label={{ value: 'kWh', angle: -90, position: 'insideLeft' }}
+                className="text-xs"
+                stroke="hsl(var(--muted-foreground))"
+              />
               <Tooltip content={<CustomTooltip />} />
               <Legend />
-              <Area type="monotone" dataKey="consumption" stroke="hsl(var(--primary))" fill="hsl(var(--primary))" fillOpacity={0.3} name="Consumption (kWh)" strokeWidth={2} />
+              <Area
+                type="monotone"
+                dataKey="consumption"
+                stroke="hsl(var(--primary))"
+                fill="hsl(var(--primary))"
+                fillOpacity={0.3}
+                name="Consumption (kWh)"
+                strokeWidth={2}
+              />
+              {data.length > 50 && (
+                <Brush
+                  dataKey="timestamp"
+                  height={30}
+                  stroke="hsl(var(--primary))"
+                  fill="hsl(var(--muted))"
+                  tickFormatter={formatXAxis}
+                  onChange={(e) => {
+                    if (e.startIndex !== undefined && e.endIndex !== undefined) {
+                      setBrushStart(chartData[e.startIndex]?.timestamp);
+                      setBrushEnd(chartData[e.endIndex]?.timestamp);
+                    }
+                  }}
+                />
+              )}
             </AreaChart>
           ) : (
-            <LineChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+            <LineChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 50 }}>
               <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-              <XAxis dataKey="timestamp" tickFormatter={formatXAxis} className="text-xs" stroke="hsl(var(--muted-foreground))" />
-              <YAxis label={{ value: 'kWh', angle: -90, position: 'insideLeft' }} className="text-xs" stroke="hsl(var(--muted-foreground))" />
+              <XAxis
+                dataKey="timestamp"
+                tickFormatter={formatXAxis}
+                className="text-xs"
+                stroke="hsl(var(--muted-foreground))"
+                domain={brushStart && brushEnd ? [brushStart, brushEnd] : ['auto', 'auto']}
+              />
+              <YAxis
+                label={{ value: 'kWh', angle: -90, position: 'insideLeft' }}
+                className="text-xs"
+                stroke="hsl(var(--muted-foreground))"
+              />
               <Tooltip content={<CustomTooltip />} />
               <Legend />
-              <Line type="monotone" dataKey="consumption" stroke="hsl(var(--primary))" name="Consumption (kWh)" strokeWidth={2} />
+              <Line
+                type="monotone"
+                dataKey="consumption"
+                stroke="hsl(var(--primary))"
+                name="Consumption (kWh)"
+                strokeWidth={2}
+                dot={data.length <= 100}
+              />
+              {data.length > 50 && (
+                <Brush
+                  dataKey="timestamp"
+                  height={30}
+                  stroke="hsl(var(--primary))"
+                  fill="hsl(var(--muted))"
+                  tickFormatter={formatXAxis}
+                  onChange={(e) => {
+                    if (e.startIndex !== undefined && e.endIndex !== undefined) {
+                      setBrushStart(chartData[e.startIndex]?.timestamp);
+                      setBrushEnd(chartData[e.endIndex]?.timestamp);
+                    }
+                  }}
+                />
+              )}
             </LineChart>
           )}
         </ResponsiveContainer>
