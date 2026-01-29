@@ -1,11 +1,9 @@
 import { useMemo, useState } from 'react';
-import { Sun, TrendingUp, Calendar, Zap, Battery } from 'lucide-react';
+import { Sun, TrendingUp, Calendar, Zap } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { useDataStore } from '@/context/DataContext';
 import {
   simulateSolar,
-  simulateSolarWithBattery,
   getSolarPresets,
   recommendSolarSize,
 } from '@/utils/solarSimulator';
@@ -22,11 +20,9 @@ export function SolarCalculator() {
     addCustomSolar,
     updateCustomSolar,
     deleteCustomSolar,
-    batteryConfig,
   } = useDataStore();
 
   const [selectedConfig, setSelectedConfig] = useState<number>(1); // Default to Medium (4 kW)
-  const [showCombined, setShowCombined] = useState(false);
 
   const presets = getSolarPresets();
   const recommendation = useMemo(
@@ -47,21 +43,10 @@ export function SolarCalculator() {
   const currentConfig: SolarConfig = solarConfig || allConfigs[selectedConfig];
 
   // Solar-only analysis
-  const solarAnalysis = useMemo(() => {
+  const analysis = useMemo(() => {
     if (consumptionData.length === 0) return null;
     return simulateSolar(consumptionData, currentConfig, ratePeriods);
   }, [consumptionData, currentConfig, ratePeriods]);
-
-  // Combined solar + battery analysis
-  const combinedAnalysis = useMemo(() => {
-    if (consumptionData.length === 0 || !batteryConfig) return null;
-    return simulateSolarWithBattery(
-      consumptionData,
-      currentConfig,
-      batteryConfig,
-      ratePeriods
-    );
-  }, [consumptionData, currentConfig, batteryConfig, ratePeriods]);
 
   const handleConfigSelect = (index: number) => {
     setSelectedConfig(index);
@@ -79,7 +64,6 @@ export function SolarCalculator() {
     );
   }
 
-  const analysis = showCombined && combinedAnalysis ? combinedAnalysis : solarAnalysis;
   if (!analysis) return null;
 
   return (
@@ -144,32 +128,6 @@ export function SolarCalculator() {
         onDelete={deleteCustomSolar}
       />
 
-      {/* Combined Mode Toggle */}
-      {batteryConfig && (
-        <Card className="bg-blue-500/5 border-blue-500/20">
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="font-medium flex items-center gap-2">
-                  <Battery className="w-4 h-4" />
-                  Combined Solar + Battery Analysis
-                </div>
-                <p className="text-sm text-muted-foreground mt-1">
-                  See how solar panels work with your selected battery ({batteryConfig.capacity} kWh)
-                </p>
-              </div>
-              <Button
-                variant={showCombined ? 'default' : 'outline'}
-                onClick={() => setShowCombined(!showCombined)}
-                size="sm"
-              >
-                {showCombined ? 'Viewing Combined' : 'View Combined'}
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
       {/* Savings Analysis */}
       {analysis && (
         <>
@@ -210,23 +168,15 @@ export function SolarCalculator() {
 
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                  {showCombined && 'selfSufficiencyRate' in analysis
-                    ? 'Self-Sufficiency'
-                    : 'Self-Consumption'}
-                </CardTitle>
+                <CardTitle className="text-sm font-medium">Self-Consumption</CardTitle>
                 <Zap className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
-                  {'selfSufficiencyRate' in analysis
-                    ? `${analysis.selfSufficiencyRate.toFixed(1)}%`
-                    : `${analysis.selfConsumptionRate.toFixed(1)}%`}
+                  {analysis.selfConsumptionRate.toFixed(1)}%
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  {showCombined && 'selfSufficiencyRate' in analysis
-                    ? 'Of consumption met by solar+battery'
-                    : 'Of generation used on-site'}
+                  Of generation used on-site
                 </p>
               </CardContent>
             </Card>
@@ -262,22 +212,6 @@ export function SolarCalculator() {
                       {analysis.totalSelfConsumed.toFixed(2)} kWh
                     </span>
                   </div>
-                  {showCombined && 'totalBatteryCharged' in analysis && (
-                    <>
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-muted-foreground">Battery Charged</span>
-                        <span className="font-bold">
-                          {analysis.totalBatteryCharged.toFixed(2)} kWh
-                        </span>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-muted-foreground">Battery Discharged</span>
-                        <span className="font-bold">
-                          {analysis.totalBatteryDischarged.toFixed(2)} kWh
-                        </span>
-                      </div>
-                    </>
-                  )}
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-muted-foreground">Exported to Grid</span>
                     <span className="font-bold">

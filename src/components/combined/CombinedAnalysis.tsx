@@ -138,9 +138,9 @@ export function CombinedAnalysis() {
       {/* Header with Actions */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-3xl font-bold">Combined System Analysis</h2>
+          <h2 className="text-3xl font-bold">System Summary</h2>
           <p className="text-muted-foreground mt-1">
-            Solar + Battery performance and financial breakdown
+            Complete analysis of your solar + battery system
           </p>
         </div>
         <div className="flex gap-2">
@@ -164,47 +164,60 @@ export function CombinedAnalysis() {
         </div>
       </div>
 
-      {/* Shared Configuration Notice */}
-      {isSharedConfig && consumptionSummary && (
+      {/* Shared Configuration Warning */}
+      {isSharedConfig && (
         <Card className="border-blue-500/20 bg-blue-500/5">
           <CardContent className="pt-6">
             <div className="flex items-start gap-3">
               <Info className="w-5 h-5 text-blue-500 mt-0.5 flex-shrink-0" />
-              <div className="space-y-3">
-                <div>
-                  <p className="font-medium text-blue-700 dark:text-blue-300">
-                    Viewing Shared Configuration
-                  </p>
-                  <p className="text-sm text-blue-600 dark:text-blue-400 mt-1">
-                    This analysis uses synthetic consumption data based on shared average usage patterns.
-                    Results are estimates. Upload your own CSV data for accurate personalized analysis.
-                  </p>
+              <div>
+                <p className="font-medium text-blue-700 dark:text-blue-300">
+                  Viewing Shared Configuration
+                </p>
+                <p className="text-sm text-blue-600 dark:text-blue-400 mt-1">
+                  This analysis uses synthetic consumption data based on shared average usage patterns.
+                  Results are estimates. Upload your own CSV data for accurate personalized analysis.
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Consumption Summary - Always visible */}
+      {consumptionSummary && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Consumption Overview</CardTitle>
+            <CardDescription>Summary of your electricity usage data</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div>
+                <div className="text-sm text-muted-foreground">Annual Usage</div>
+                <div className="text-2xl font-bold">
+                  {consumptionSummary.annualConsumption.toLocaleString(undefined, { maximumFractionDigits: 0 })} kWh
                 </div>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 pt-2 border-t border-blue-500/20">
-                  <div>
-                    <div className="text-xs text-blue-600 dark:text-blue-400">Annual Usage</div>
-                    <div className="font-semibold text-blue-700 dark:text-blue-300">
-                      {consumptionSummary.annualConsumption.toLocaleString(undefined, { maximumFractionDigits: 0 })} kWh
-                    </div>
-                  </div>
-                  <div>
-                    <div className="text-xs text-blue-600 dark:text-blue-400">Daily Average</div>
-                    <div className="font-semibold text-blue-700 dark:text-blue-300">
-                      {consumptionSummary.avgDailyConsumption.toFixed(1)} kWh
-                    </div>
-                  </div>
-                  <div>
-                    <div className="text-xs text-blue-600 dark:text-blue-400">Data Period</div>
-                    <div className="font-semibold text-blue-700 dark:text-blue-300">
-                      {consumptionSummary.totalDays} days
-                    </div>
-                  </div>
-                  <div>
-                    <div className="text-xs text-blue-600 dark:text-blue-400">Date Range</div>
-                    <div className="font-semibold text-blue-700 dark:text-blue-300 text-xs">
-                      {format(consumptionSummary.dateStart, 'MMM yyyy')} - {format(consumptionSummary.dateEnd, 'MMM yyyy')}
-                    </div>
-                  </div>
+              </div>
+              <div>
+                <div className="text-sm text-muted-foreground">Daily Average</div>
+                <div className="text-2xl font-bold">
+                  {consumptionSummary.avgDailyConsumption.toFixed(1)} kWh
+                </div>
+              </div>
+              <div>
+                <div className="text-sm text-muted-foreground">Data Period</div>
+                <div className="text-2xl font-bold">
+                  {consumptionSummary.totalDays} days
+                </div>
+              </div>
+              <div>
+                <div className="text-sm text-muted-foreground">Date Range</div>
+                <div className="text-lg font-bold">
+                  {format(consumptionSummary.dateStart, 'MMM yyyy')}
+                </div>
+                <div className="text-sm text-muted-foreground">
+                  to {format(consumptionSummary.dateEnd, 'MMM yyyy')}
                 </div>
               </div>
             </div>

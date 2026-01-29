@@ -19,8 +19,8 @@ export function Dashboard() {
   // Detect if using shared configuration data (not example profiles)
   const isSharedConfig = fileName?.includes('Shared Configuration');
 
-  // Set initial tab - shared configs go to combined, everything else to consumption
-  const [activeTab, setActiveTab] = useState(isSharedConfig ? 'combined' : 'consumption');
+  // Set initial tab - shared configs go to summary, everything else to consumption
+  const [activeTab, setActiveTab] = useState(isSharedConfig ? 'summary' : 'consumption');
   const [viewMode, setViewMode] = useState<'kwh' | 'cost'>('kwh');
 
   // Calculate statistics
@@ -85,9 +85,9 @@ export function Dashboard() {
             <Sun className="w-4 h-4" />
             Solar
           </TabsTrigger>
-          <TabsTrigger value="combined" className="gap-2">
+          <TabsTrigger value="summary" className="gap-2">
             <Layers className="w-4 h-4" />
-            Combined
+            Summary
           </TabsTrigger>
         </TabsList>
 
@@ -252,8 +252,8 @@ export function Dashboard() {
           <SolarCalculator />
         </TabsContent>
 
-        {/* Combined Analysis Tab */}
-        <TabsContent value="combined">
+        {/* Summary Tab */}
+        <TabsContent value="summary">
           <CombinedAnalysis />
         </TabsContent>
       </Tabs>
