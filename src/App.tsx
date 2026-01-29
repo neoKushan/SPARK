@@ -12,6 +12,7 @@ function App() {
     setRatePeriods,
     setBatteryConfig,
     setSolarConfig,
+    setConsumptionData,
   } = useDataStore();
 
   // Load configuration from URL on mount
@@ -24,11 +25,12 @@ function App() {
         setRatePeriods,
         setBatteryConfig,
         setSolarConfig,
+        setConsumptionData,
       });
       // Clear URL params after loading
       window.history.replaceState({}, '', window.location.pathname);
     }
-  }, [setRatePeriods, setBatteryConfig, setSolarConfig]);
+  }, [setRatePeriods, setBatteryConfig, setSolarConfig, setConsumptionData]);
 
   // Apply dark mode class to document element
   useEffect(() => {

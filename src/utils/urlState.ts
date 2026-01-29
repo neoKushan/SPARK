@@ -1,9 +1,17 @@
-import type { RatePeriod, BatteryConfig, SolarConfig } from '@/types/consumption';
+import type { RatePeriod, BatteryConfig, SolarConfig, ConsumptionDataPoint } from '@/types/consumption';
+
+export interface ConsumptionSummary {
+  avgDailyConsumption: number;  // Average kWh per day
+  totalDays: number;             // Number of days in the dataset
+  dateStart: string;             // ISO date string
+  dateEnd: string;               // ISO date string
+}
 
 interface UrlState {
   ratePeriods?: RatePeriod[];
   batteryConfig?: BatteryConfig;
   solarConfig?: SolarConfig;
+  consumptionSummary?: ConsumptionSummary;
 }
 
 /**
@@ -44,6 +52,14 @@ export function encodeStateToUrl(state: UrlState): string {
     if (state.solarConfig.cost) params.set('s_cost', state.solarConfig.cost.toString());
     if (state.solarConfig.exportRate) params.set('s_export', state.solarConfig.exportRate.toString());
     if (state.solarConfig.name) params.set('s_name', state.solarConfig.name);
+  }
+
+  // Encode consumption summary
+  if (state.consumptionSummary) {
+    params.set('c_avg', state.consumptionSummary.avgDailyConsumption.toString());
+    params.set('c_days', state.consumptionSummary.totalDays.toString());
+    params.set('c_start', state.consumptionSummary.dateStart);
+    params.set('c_end', state.consumptionSummary.dateEnd);
   }
 
   return params.toString();
@@ -111,7 +127,63 @@ export function decodeStateFromUrl(searchParams: URLSearchParams): UrlState {
     };
   }
 
+  // Decode consumption summary
+  const cAvg = searchParams.get('c_avg');
+  if (cAvg) {
+    state.consumptionSummary = {
+      avgDailyConsumption: parseFloat(cAvg),
+      totalDays: parseInt(searchParams.get('c_days') || '30'),
+      dateStart: searchParams.get('c_start') || new Date().toISOString(),
+      dateEnd: searchParams.get('c_end') || new Date().toISOString(),
+    };
+  }
+
   return state;
+}
+
+/**
+ * Generate synthetic consumption data from summary statistics
+ * Creates evenly distributed 30-minute intervals with realistic daily patterns
+ */
+export function generateSyntheticConsumption(summary: ConsumptionSummary): ConsumptionDataPoint[] {
+  const data: ConsumptionDataPoint[] = [];
+  const startDate = new Date(summary.dateStart);
+  const avgPer30Min = summary.avgDailyConsumption / 48; // 48 intervals per day
+
+  // Generate data for each day
+  for (let day = 0; day < summary.totalDays; day++) {
+    // Generate 48 intervals per day (30 minutes each)
+    for (let interval = 0; interval < 48; interval++) {
+      const start = new Date(startDate);
+      start.setDate(start.getDate() + day);
+      start.setHours(Math.floor(interval / 2));
+      start.setMinutes((interval % 2) * 30);
+
+      const end = new Date(start);
+      end.setMinutes(end.getMinutes() + 30);
+
+      // Add realistic variation based on time of day
+      const hour = start.getHours();
+      let multiplier = 1.0;
+
+      // Higher consumption in morning (6-9am) and evening (6-10pm)
+      if (hour >= 6 && hour <= 9) {
+        multiplier = 1.5;
+      } else if (hour >= 18 && hour <= 22) {
+        multiplier = 1.8;
+      } else if (hour >= 0 && hour <= 6) {
+        multiplier = 0.5; // Lower at night
+      }
+
+      data.push({
+        consumption: avgPer30Min * multiplier,
+        start,
+        end,
+      });
+    }
+  }
+
+  return data;
 }
 
 /**
@@ -123,6 +195,7 @@ export function applyUrlState(
     setRatePeriods?: (periods: RatePeriod[]) => void;
     setBatteryConfig?: (config: BatteryConfig) => void;
     setSolarConfig?: (config: SolarConfig) => void;
+    setConsumptionData?: (data: ConsumptionDataPoint[], fileName: string) => void;
   }
 ) {
   if (urlState.ratePeriods && store.setRatePeriods) {
@@ -133,5 +206,12 @@ export function applyUrlState(
   }
   if (urlState.solarConfig && store.setSolarConfig) {
     store.setSolarConfig(urlState.solarConfig);
+  }
+  if (urlState.consumptionSummary && store.setConsumptionData) {
+    const syntheticData = generateSyntheticConsumption(urlState.consumptionSummary);
+    store.setConsumptionData(
+      syntheticData,
+      'Shared Configuration (Synthetic Data)'
+    );
   }
 }
