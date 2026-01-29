@@ -4,6 +4,7 @@ import type {
   ConsumptionDataPoint,
   RatePeriod,
   BatteryConfig,
+  SolarConfig,
   DateRange,
   TimeFrame,
 } from '@/types/consumption';
@@ -21,6 +22,10 @@ interface DataState {
   // Battery configuration
   batteryConfig: BatteryConfig | null;
   customBatteryConfigs: BatteryConfig[];
+
+  // Solar configuration
+  solarConfig: SolarConfig | null;
+  customSolarConfigs: SolarConfig[];
 
   // UI State
   selectedTimeFrame: TimeFrame;
@@ -43,6 +48,13 @@ interface DataState {
   addCustomBattery: (config: BatteryConfig) => void;
   updateCustomBattery: (id: string, config: Partial<BatteryConfig>) => void;
   deleteCustomBattery: (id: string) => void;
+
+  // Actions for solar
+  setSolarConfig: (config: SolarConfig) => void;
+  clearSolarConfig: () => void;
+  addCustomSolar: (config: SolarConfig) => void;
+  updateCustomSolar: (id: string, config: Partial<SolarConfig>) => void;
+  deleteCustomSolar: (id: string) => void;
 
   // Actions for UI state
   setSelectedTimeFrame: (timeFrame: TimeFrame) => void;
@@ -92,6 +104,8 @@ export const useDataStore = create<DataState>()(
       ratePeriods: defaultRatePeriods,
       batteryConfig: defaultBatteryConfig,
       customBatteryConfigs: [],
+      solarConfig: null,
+      customSolarConfigs: [],
       selectedTimeFrame: 'day',
       customDateRange: null,
       darkMode: true,
@@ -162,6 +176,30 @@ export const useDataStore = create<DataState>()(
           customBatteryConfigs: state.customBatteryConfigs.filter((c) => c.id !== id),
         })),
 
+      // Solar actions
+      setSolarConfig: (config) =>
+        set({ solarConfig: config }),
+
+      clearSolarConfig: () =>
+        set({ solarConfig: null }),
+
+      addCustomSolar: (config) =>
+        set((state) => ({
+          customSolarConfigs: [...state.customSolarConfigs, config],
+        })),
+
+      updateCustomSolar: (id, config) =>
+        set((state) => ({
+          customSolarConfigs: state.customSolarConfigs.map((c) =>
+            c.id === id ? { ...c, ...config } : c
+          ),
+        })),
+
+      deleteCustomSolar: (id) =>
+        set((state) => ({
+          customSolarConfigs: state.customSolarConfigs.filter((c) => c.id !== id),
+        })),
+
       // UI state actions
       setSelectedTimeFrame: (timeFrame) =>
         set({ selectedTimeFrame: timeFrame }),
@@ -199,6 +237,8 @@ export const useDataStore = create<DataState>()(
         ratePeriods: state.ratePeriods,
         batteryConfig: state.batteryConfig,
         customBatteryConfigs: state.customBatteryConfigs,
+        solarConfig: state.solarConfig,
+        customSolarConfigs: state.customSolarConfigs,
         darkMode: state.darkMode,
         // Don't persist consumption data (too large for localStorage)
       }),

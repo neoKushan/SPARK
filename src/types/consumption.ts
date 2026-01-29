@@ -141,6 +141,72 @@ export interface BatteryAnalysis {
 }
 
 /**
+ * Solar panel configuration
+ */
+export interface SolarConfig {
+  id?: string;                   // Unique identifier
+  name?: string;                 // Custom name (e.g., "Rooftop 4kW System")
+  capacity: number;              // kW peak capacity (e.g., 4.0)
+  panelEfficiency: number;       // Percentage (e.g., 20 for 20% efficient panels)
+  systemEfficiency: number;      // Overall system efficiency including inverter losses (e.g., 85%)
+  orientation: 'south' | 'east' | 'west' | 'north' | 'south-east' | 'south-west';
+  tilt: number;                  // Angle in degrees (e.g., 35)
+  cost?: number;                 // Upfront cost in £ (optional)
+  exportRate?: number;           // Feed-in tariff rate per kWh (e.g., 0.15 for £0.15/kWh)
+}
+
+/**
+ * Solar generation at a point in time
+ */
+export interface SolarGeneration {
+  timestamp: Date;
+  generation: number;            // kW generated
+  consumed: number;              // kW used directly
+  exported: number;              // kW exported to grid
+  batteryCharged: number;        // kW sent to battery (if present)
+}
+
+/**
+ * Solar simulation results
+ */
+export interface SolarAnalysis {
+  solarConfig: SolarConfig;
+  totalGeneration: number;       // Total kWh generated
+  totalExported: number;         // Total kWh exported to grid
+  totalSelfConsumed: number;     // Total kWh consumed directly
+  exportEarnings: number;        // Total earnings from exports
+  importSavings: number;         // Savings from reduced grid import
+  totalSavings: number;          // exportEarnings + importSavings
+  dailyAverageSavings: number;
+  annualEstimate: number;
+  paybackPeriod: number;
+  selfConsumptionRate: number;   // % of generation used on-site
+  generations: SolarGeneration[];
+}
+
+/**
+ * Combined solar + battery simulation results
+ */
+export interface CombinedAnalysis {
+  solarConfig: SolarConfig;
+  batteryConfig?: BatteryConfig;
+  totalGeneration: number;
+  totalExported: number;
+  totalSelfConsumed: number;
+  totalBatteryCharged: number;
+  totalBatteryDischarged: number;
+  exportEarnings: number;
+  importSavings: number;
+  totalSavings: number;
+  dailyAverageSavings: number;
+  annualEstimate: number;
+  paybackPeriod: number;
+  selfSufficiencyRate: number;   // % of consumption met by solar + battery
+  generations: SolarGeneration[];
+  batteryStates?: BatteryState[];
+}
+
+/**
  * Cost comparison with and without battery
  */
 export interface CostComparison {
