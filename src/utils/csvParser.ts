@@ -12,6 +12,7 @@ export async function parseEnergyConsumptionCsv(file: File): Promise<ParseResult
       header: true,
       skipEmptyLines: true,
       dynamicTyping: false, // Keep as strings initially for better error handling
+      transformHeader: (header) => header.trim(), // Trim whitespace from headers
       complete: (results) => {
         try {
           // Validate that we have data
