@@ -12,8 +12,9 @@ import { format } from 'date-fns';
 import type { TimeFrame } from '@/types/consumption';
 
 export function Dashboard() {
-  const { consumptionData, selectedTimeFrame, setSelectedTimeFrame, dateRange } = useDataStore();
+  const { consumptionData, selectedTimeFrame, setSelectedTimeFrame, dateRange, ratePeriods } = useDataStore();
   const [activeTab, setActiveTab] = useState('consumption');
+  const [viewMode, setViewMode] = useState<'kwh' | 'cost'>('kwh');
 
   // Calculate statistics
   const stats = useMemo(() => calculateStatistics(consumptionData), [consumptionData]);
@@ -79,17 +80,35 @@ export function Dashboard() {
         <TabsContent value="consumption" className="space-y-6">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <h3 className="text-xl font-semibold">Energy Consumption Analysis</h3>
-            <div className="flex gap-2">
-              {timeFrames.map((tf) => (
+            <div className="flex flex-col sm:flex-row gap-3">
+              <div className="flex gap-2 border rounded-lg p-1">
                 <Button
-                  key={tf.value}
-                  variant={selectedTimeFrame === tf.value ? 'default' : 'outline'}
+                  variant={viewMode === 'kwh' ? 'default' : 'ghost'}
                   size="sm"
-                  onClick={() => setSelectedTimeFrame(tf.value)}
+                  onClick={() => setViewMode('kwh')}
                 >
-                  {tf.label}
+                  kWh
                 </Button>
-              ))}
+                <Button
+                  variant={viewMode === 'cost' ? 'default' : 'ghost'}
+                  size="sm"
+                  onClick={() => setViewMode('cost')}
+                >
+                  Cost (£)
+                </Button>
+              </div>
+              <div className="flex gap-2">
+                {timeFrames.map((tf) => (
+                  <Button
+                    key={tf.value}
+                    variant={selectedTimeFrame === tf.value ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setSelectedTimeFrame(tf.value)}
+                  >
+                    {tf.label}
+                  </Button>
+                ))}
+              </div>
             </div>
           </div>
 
@@ -151,8 +170,10 @@ export function Dashboard() {
           <ConsumptionChart
             data={chartData}
             timeFrame={selectedTimeFrame}
-            title={`Energy Consumption - ${timeFrames.find((t) => t.value === selectedTimeFrame)?.label}`}
+            title={`${viewMode === 'kwh' ? 'Energy Consumption' : 'Energy Cost'} - ${timeFrames.find((t) => t.value === selectedTimeFrame)?.label}`}
             showArea={true}
+            viewMode={viewMode}
+            ratePeriods={ratePeriods}
           />
 
           {/* Aggregated Data Table */}

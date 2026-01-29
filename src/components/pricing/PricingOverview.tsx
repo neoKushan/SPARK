@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { DollarSign, TrendingDown } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { RateConfiguration } from './RateConfiguration';
 import { useDataStore } from '@/context/DataContext';
 import {
   calculateTotalCost,
@@ -114,38 +115,7 @@ export function PricingOverview() {
       </Card>
 
       {/* Rate Configuration */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Current Rate Configuration</CardTitle>
-          <CardDescription>Your configured energy rates</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-2">
-            {ratePeriods.map((period) => (
-              <div
-                key={period.id}
-                className="flex items-center justify-between p-3 border rounded-lg"
-              >
-                <div className="flex items-center gap-3">
-                  <div
-                    className="w-4 h-4 rounded-full"
-                    style={{ backgroundColor: period.color || '#3b82f6' }}
-                  />
-                  <div>
-                    <div className="font-medium">{period.name}</div>
-                    <div className="text-sm text-muted-foreground">
-                      {period.startTime} - {period.endTime}
-                    </div>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <div className="font-bold">£{period.ratePerKwh.toFixed(3)}/kWh</div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+      <RateConfiguration />
     </div>
   );
 }

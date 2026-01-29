@@ -47,22 +47,22 @@ interface DataState {
   setDarkMode: (enabled: boolean) => void;
 }
 
-// Default rate periods (UK Octopus Energy Agile style)
+// Default rate periods (UK Octopus Energy Intelligent Octopus Go)
 const defaultRatePeriods: RatePeriod[] = [
   {
     id: 'cheap',
     name: 'Cheap Rate',
     startTime: '23:30',
-    endTime: '05:00',
-    ratePerKwh: 0.075,
+    endTime: '05:30',
+    ratePerKwh: 0.07,
     color: '#10b981', // green
   },
   {
     id: 'standard',
     name: 'Standard Rate',
-    startTime: '05:00',
+    startTime: '05:30',
     endTime: '23:30',
-    ratePerKwh: 0.245,
+    ratePerKwh: 0.3051,
     color: '#3b82f6', // blue
   },
 ];

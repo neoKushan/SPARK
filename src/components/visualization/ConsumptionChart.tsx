@@ -14,13 +14,16 @@ import {
 } from 'recharts';
 import { format } from 'date-fns';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import type { ConsumptionDataPoint, TimeFrame } from '@/types/consumption';
+import type { ConsumptionDataPoint, TimeFrame, RatePeriod } from '@/types/consumption';
+import { matchRatePeriod } from '@/utils/pricingCalculator';
 
 interface ConsumptionChartProps {
   data: ConsumptionDataPoint[];
   timeFrame?: TimeFrame;
   title?: string;
   showArea?: boolean;
+  viewMode?: 'kwh' | 'cost';
+  ratePeriods?: RatePeriod[];
 }
 
 export function ConsumptionChart({
@@ -28,18 +31,32 @@ export function ConsumptionChart({
   timeFrame = 'day',
   title = 'Energy Consumption',
   showArea = true,
+  viewMode = 'kwh',
+  ratePeriods = [],
 }: ConsumptionChartProps) {
   const [brushStart, setBrushStart] = useState<number | undefined>(undefined);
   const [brushEnd, setBrushEnd] = useState<number | undefined>(undefined);
 
   // Transform data for Recharts
   const chartData = useMemo(() => {
-    return data.map((point) => ({
-      timestamp: point.start.getTime(),
-      consumption: Number(point.consumption.toFixed(3)),
-      date: point.start,
-    }));
-  }, [data]);
+    return data.map((point) => {
+      const consumption = Number(point.consumption.toFixed(3));
+      let cost = 0;
+
+      if (viewMode === 'cost' && ratePeriods.length > 0) {
+        const rate = matchRatePeriod(point.start, ratePeriods);
+        cost = Number((consumption * rate.ratePerKwh).toFixed(4));
+      }
+
+      return {
+        timestamp: point.start.getTime(),
+        consumption,
+        cost,
+        value: viewMode === 'cost' ? cost : consumption,
+        date: point.start,
+      };
+    });
+  }, [data, viewMode, ratePeriods]);
 
   // Format x-axis based on time frame
   const formatXAxis = (timestamp: number) => {
@@ -70,7 +87,14 @@ export function ConsumptionChart({
             {format(data.date, 'PPpp')}
           </p>
           <p className="text-sm text-muted-foreground mt-1">
-            <span className="text-primary font-semibold">{data.consumption} kWh</span>
+            {viewMode === 'kwh' ? (
+              <span className="text-primary font-semibold">{data.consumption} kWh</span>
+            ) : (
+              <>
+                <span className="text-primary font-semibold">£{data.cost.toFixed(2)}</span>
+                <span className="text-xs ml-2">({data.consumption} kWh)</span>
+              </>
+            )}
           </p>
         </div>
       );
@@ -82,18 +106,38 @@ export function ConsumptionChart({
   const stats = useMemo(() => {
     if (data.length === 0) return null;
 
-    const total = data.reduce((sum, point) => sum + point.consumption, 0);
-    const average = total / data.length;
-    const max = Math.max(...data.map((point) => point.consumption));
-    const min = Math.min(...data.map((point) => point.consumption));
+    if (viewMode === 'cost' && ratePeriods.length > 0) {
+      const costs = data.map((point) => {
+        const rate = matchRatePeriod(point.start, ratePeriods);
+        return point.consumption * rate.ratePerKwh;
+      });
+      const total = costs.reduce((sum, cost) => sum + cost, 0);
+      const average = total / costs.length;
+      const max = Math.max(...costs);
+      const min = Math.min(...costs);
 
-    return {
-      total: total.toFixed(2),
-      average: average.toFixed(3),
-      max: max.toFixed(3),
-      min: min.toFixed(3),
-    };
-  }, [data]);
+      return {
+        total: `£${total.toFixed(2)}`,
+        average: `£${average.toFixed(4)}`,
+        max: `£${max.toFixed(4)}`,
+        min: `£${min.toFixed(4)}`,
+        unit: '£',
+      };
+    } else {
+      const total = data.reduce((sum, point) => sum + point.consumption, 0);
+      const average = total / data.length;
+      const max = Math.max(...data.map((point) => point.consumption));
+      const min = Math.min(...data.map((point) => point.consumption));
+
+      return {
+        total: `${total.toFixed(2)} kWh`,
+        average: `${average.toFixed(3)} kWh`,
+        max: `${max.toFixed(3)} kWh`,
+        min: `${min.toFixed(3)} kWh`,
+        unit: 'kWh',
+      };
+    }
+  }, [data, viewMode, ratePeriods]);
 
   if (data.length === 0) {
     return (
@@ -113,9 +157,9 @@ export function ConsumptionChart({
         <CardDescription>
           {stats && (
             <div className="flex flex-wrap gap-4 mt-2">
-              <span>Total: <strong>{stats.total} kWh</strong></span>
-              <span>Average: <strong>{stats.average} kWh</strong></span>
-              <span>Peak: <strong>{stats.max} kWh</strong></span>
+              <span>Total: <strong>{stats.total}</strong></span>
+              <span>Average: <strong>{stats.average}</strong></span>
+              <span>Peak: <strong>{stats.max}</strong></span>
             </div>
           )}
         </CardDescription>
@@ -136,7 +180,7 @@ export function ConsumptionChart({
                 domain={brushStart && brushEnd ? [brushStart, brushEnd] : ['auto', 'auto']}
               />
               <YAxis
-                label={{ value: 'kWh', angle: -90, position: 'insideLeft' }}
+                label={{ value: viewMode === 'kwh' ? 'kWh' : '£', angle: -90, position: 'insideLeft' }}
                 className="text-xs"
                 stroke="hsl(var(--muted-foreground))"
               />
@@ -144,11 +188,11 @@ export function ConsumptionChart({
               <Legend />
               <Area
                 type="monotone"
-                dataKey="consumption"
+                dataKey="value"
                 stroke="hsl(var(--primary))"
                 fill="hsl(var(--primary))"
                 fillOpacity={0.3}
-                name="Consumption (kWh)"
+                name={viewMode === 'kwh' ? 'Consumption (kWh)' : 'Cost (£)'}
                 strokeWidth={2}
               />
               {data.length > 50 && (
@@ -178,7 +222,7 @@ export function ConsumptionChart({
                 domain={brushStart && brushEnd ? [brushStart, brushEnd] : ['auto', 'auto']}
               />
               <YAxis
-                label={{ value: 'kWh', angle: -90, position: 'insideLeft' }}
+                label={{ value: viewMode === 'kwh' ? 'kWh' : '£', angle: -90, position: 'insideLeft' }}
                 className="text-xs"
                 stroke="hsl(var(--muted-foreground))"
               />
@@ -186,9 +230,9 @@ export function ConsumptionChart({
               <Legend />
               <Line
                 type="monotone"
-                dataKey="consumption"
+                dataKey="value"
                 stroke="hsl(var(--primary))"
-                name="Consumption (kWh)"
+                name={viewMode === 'kwh' ? 'Consumption (kWh)' : 'Cost (£)'}
                 strokeWidth={2}
                 dot={data.length <= 100}
               />
