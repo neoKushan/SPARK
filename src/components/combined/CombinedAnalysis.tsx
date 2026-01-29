@@ -25,6 +25,7 @@ export function CombinedAnalysis() {
   const {
     consumptionData,
     ratePeriods,
+    exportRate,
     solarConfig,
     batteryConfig,
     fileName,
@@ -67,7 +68,7 @@ export function CombinedAnalysis() {
     if (solarConfig && batteryConfig) {
       return {
         type: 'combined' as const,
-        ...simulateSolarWithBattery(consumptionData, solarConfig, batteryConfig, ratePeriods)
+        ...simulateSolarWithBattery(consumptionData, solarConfig, batteryConfig, ratePeriods, exportRate)
       };
     }
 
@@ -83,13 +84,13 @@ export function CombinedAnalysis() {
     if (solarConfig && !batteryConfig) {
       return {
         type: 'solar' as const,
-        ...simulateSolar(consumptionData, solarConfig, ratePeriods)
+        ...simulateSolar(consumptionData, solarConfig, ratePeriods, exportRate)
       };
     }
 
     // No system configured
     return null;
-  }, [consumptionData, solarConfig, batteryConfig, ratePeriods]);
+  }, [consumptionData, solarConfig, batteryConfig, ratePeriods, exportRate]);
 
   const handleShare = () => {
     // Prepare consumption summary for URL encoding
@@ -574,7 +575,7 @@ export function CombinedAnalysis() {
           </div>
           {solarConfig && (
             <div className="mt-3 pt-3 border-t text-sm text-muted-foreground">
-              Export Rate: {((solarConfig.exportRate || 0.15) * 100).toFixed(1)}p/kWh
+              Export Rate: {(exportRate * 100).toFixed(1)}p/kWh (configured in Pricing)
             </div>
           )}
         </CardContent>
@@ -592,7 +593,7 @@ export function CombinedAnalysis() {
                   <>
                     <li>Solar generation estimates use UK average irradiance patterns</li>
                     <li>Actual results may vary based on location, weather, and shading</li>
-                    <li>Export rate: {((solarConfig?.exportRate || 0.15) * 100).toFixed(1)}p/kWh (UK Smart Export Guarantee)</li>
+                    <li>Export rate: {(exportRate * 100).toFixed(1)}p/kWh (configured in Pricing tab)</li>
                   </>
                 )}
                 {(analysis.type === 'combined' || analysis.type === 'battery') && (

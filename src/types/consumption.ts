@@ -45,6 +45,19 @@ export interface RatePeriod {
 }
 
 /**
+ * Energy tariff with import and export rates
+ */
+export interface EnergyTariff {
+  id: string;
+  provider: string;
+  name: string;
+  ratePeriods: RatePeriod[];
+  exportRate: number;        // Export rate per kWh (e.g., 0.15 for £0.15/kWh)
+  standingCharge?: number;   // Daily standing charge in pence
+  notes?: string;            // Hardware/eligibility requirements
+}
+
+/**
  * Cost calculation for a consumption period
  */
 export interface CostDataPoint {
@@ -154,7 +167,6 @@ export interface SolarConfig {
   orientation: 'south' | 'east' | 'west' | 'north' | 'south-east' | 'south-west';
   tilt: number;                  // Angle in degrees (e.g., 35)
   cost?: number;                 // Upfront cost in £ (optional)
-  exportRate?: number;           // Feed-in tariff rate per kWh (e.g., 0.15 for £0.15/kWh)
   predictedAnnualOutput?: number; // Predicted annual generation in kWh (optional, overrides calculated values)
 }
 

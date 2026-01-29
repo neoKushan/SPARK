@@ -25,7 +25,6 @@ export function SolarConfigurator({ configs, onAdd, onUpdate, onDelete }: SolarC
       orientation: config.orientation,
       tilt: config.tilt,
       cost: config.cost,
-      exportRate: config.exportRate,
       predictedAnnualOutput: config.predictedAnnualOutput,
     });
   };
@@ -51,7 +50,6 @@ export function SolarConfigurator({ configs, onAdd, onUpdate, onDelete }: SolarC
       orientation: 'south',
       tilt: 35,
       cost: 4800,
-      exportRate: 0.15,
     };
     onAdd(newConfig);
     startEdit(newConfig);
@@ -148,23 +146,13 @@ export function SolarConfigurator({ configs, onAdd, onUpdate, onDelete }: SolarC
                         className="w-full px-3 py-2 border rounded-md bg-background"
                       />
                     </div>
-                    <div>
+                    <div className="md:col-span-2">
                       <label className="text-sm font-medium mb-1 block">System Cost (£)</label>
                       <input
                         type="number"
                         step="100"
                         value={editForm.cost || ''}
                         onChange={(e) => setEditForm({ ...editForm, cost: parseFloat(e.target.value) })}
-                        className="w-full px-3 py-2 border rounded-md bg-background"
-                      />
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium mb-1 block">Export Rate (£/kWh)</label>
-                      <input
-                        type="number"
-                        step="0.01"
-                        value={editForm.exportRate || ''}
-                        onChange={(e) => setEditForm({ ...editForm, exportRate: parseFloat(e.target.value) })}
                         className="w-full px-3 py-2 border rounded-md bg-background"
                       />
                     </div>
@@ -217,7 +205,7 @@ export function SolarConfigurator({ configs, onAdd, onUpdate, onDelete }: SolarC
                     )}
                     {config.cost && (
                       <div className="text-sm font-medium text-primary mt-1">
-                        £{config.cost.toLocaleString()} • Export: {(config.exportRate! * 100).toFixed(1)}p/kWh
+                        £{config.cost.toLocaleString()}
                       </div>
                     )}
                   </div>

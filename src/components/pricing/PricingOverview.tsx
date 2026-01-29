@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { DollarSign, TrendingDown } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { RateConfiguration } from './RateConfiguration';
+import { TariffComparison } from './TariffComparison';
 import { useDataStore } from '@/context/DataContext';
 import {
   calculateTotalCost,
@@ -116,6 +117,9 @@ export function PricingOverview() {
 
       {/* Rate Configuration */}
       <RateConfiguration />
+
+      {/* Tariff Comparison */}
+      <TariffComparison />
     </div>
   );
 }

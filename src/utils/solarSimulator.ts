@@ -104,7 +104,8 @@ function calculateScalingFactor(
 export function simulateSolar(
   data: ConsumptionDataPoint[],
   solarConfig: SolarConfig,
-  ratePeriods: RatePeriod[]
+  ratePeriods: RatePeriod[],
+  exportRate: number = 0.15
 ): SolarAnalysis {
   const generations: SolarGeneration[] = [];
   let totalGeneration = 0;
@@ -113,7 +114,6 @@ export function simulateSolar(
   let exportEarnings = 0;
   let importSavings = 0;
 
-  const exportRate = solarConfig.exportRate || 0.15; // Default UK SEG rate
   const scalingFactor = calculateScalingFactor(data, solarConfig);
 
   for (const point of data) {
@@ -177,7 +177,8 @@ export function simulateSolarWithBattery(
   data: ConsumptionDataPoint[],
   solarConfig: SolarConfig,
   batteryConfig: BatteryConfig,
-  ratePeriods: RatePeriod[]
+  ratePeriods: RatePeriod[],
+  exportRate: number = 0.15
 ): CombinedAnalysis {
   const generations: SolarGeneration[] = [];
   const batteryStates: BatteryState[] = [];
@@ -189,8 +190,6 @@ export function simulateSolarWithBattery(
   let totalBatteryDischarged = 0;
   let exportEarnings = 0;
   let importSavings = 0;
-
-  const exportRate = solarConfig.exportRate || 0.15;
   const minSoc = (batteryConfig.minimumSoc || 10) / 100 * batteryConfig.capacity;
   const maxSoc = (batteryConfig.maximumSoc || 100) / 100 * batteryConfig.capacity;
   let stateOfCharge = 0;
@@ -350,7 +349,6 @@ export function getSolarPresets() {
       orientation: 'south' as const,
       tilt: 35,
       cost: 3600,
-      exportRate: 0.15,
       description: 'Suitable for small homes, 8-10 panels',
     },
     {
@@ -361,7 +359,6 @@ export function getSolarPresets() {
       orientation: 'south' as const,
       tilt: 35,
       cost: 4800,
-      exportRate: 0.15,
       description: 'Good for average homes, 10-12 panels',
     },
     {
@@ -372,7 +369,6 @@ export function getSolarPresets() {
       orientation: 'south' as const,
       tilt: 35,
       cost: 7200,
-      exportRate: 0.15,
       description: 'For larger homes, 15-18 panels',
     },
     {
@@ -383,7 +379,6 @@ export function getSolarPresets() {
       orientation: 'south' as const,
       tilt: 35,
       cost: 10400,
-      exportRate: 0.15,
       description: 'High-efficiency system for maximum generation',
     },
   ];

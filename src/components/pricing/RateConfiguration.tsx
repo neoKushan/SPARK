@@ -1,14 +1,28 @@
 import { useState } from 'react';
-import { Plus, Pencil, Trash2, Check, X } from 'lucide-react';
+import { Plus, Pencil, Trash2, Check, X, Zap } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useDataStore } from '@/context/DataContext';
+import { getTariffPresets } from '@/utils/tariffPresets';
 import type { RatePeriod } from '@/types/consumption';
 
 export function RateConfiguration() {
-  const { ratePeriods, updateRatePeriod, deleteRatePeriod, addRatePeriod } = useDataStore();
+  const {
+    ratePeriods,
+    currentTariffId,
+    exportRate,
+    updateRatePeriod,
+    deleteRatePeriod,
+    addRatePeriod,
+    setTariff,
+    setExportRate,
+  } = useDataStore();
+
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState<Partial<RatePeriod>>({});
+
+  const tariffPresets = getTariffPresets();
+  const currentTariff = tariffPresets.find((t) => t.id === currentTariffId);
 
   const startEdit = (period: RatePeriod) => {
     setEditingId(period.id);
@@ -45,21 +59,98 @@ export function RateConfiguration() {
     startEdit(newPeriod);
   };
 
+  const handleTariffChange = (tariffId: string) => {
+    if (tariffId === 'custom') {
+      // Keep current rates but clear tariff ID
+      return;
+    }
+    setTariff(tariffId);
+  };
+
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex items-center justify-between">
+    <div className="space-y-6">
+      {/* Tariff Selector */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Zap className="w-5 h-5 text-primary" />
+            Energy Tariff
+          </CardTitle>
+          <CardDescription>Select a preset tariff or create custom rates</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
           <div>
-            <CardTitle>Rate Configuration</CardTitle>
-            <CardDescription>Configure your energy tariff rate periods</CardDescription>
+            <label className="text-sm font-medium mb-2 block">Select Tariff</label>
+            <select
+              value={currentTariffId || 'custom'}
+              onChange={(e) => handleTariffChange(e.target.value)}
+              className="w-full px-3 py-2 border rounded-md bg-background"
+            >
+              {tariffPresets.map((tariff) => (
+                <option key={tariff.id} value={tariff.id}>
+                  {tariff.provider} - {tariff.name}
+                </option>
+              ))}
+              <option value="custom">Custom Tariff</option>
+            </select>
           </div>
-          <Button onClick={handleAddNew} size="sm">
-            <Plus className="w-4 h-4 mr-2" />
-            Add Rate
-          </Button>
-        </div>
-      </CardHeader>
-      <CardContent>
+
+          {currentTariff && (
+            <div className="p-4 bg-muted/50 rounded-lg space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium">Export Rate:</span>
+                <span className="font-bold">{(exportRate * 100).toFixed(1)}p/kWh</span>
+              </div>
+              {currentTariff.standingCharge !== undefined && (
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium">Standing Charge:</span>
+                  <span className="font-bold">{currentTariff.standingCharge.toFixed(1)}p/day</span>
+                </div>
+              )}
+              {currentTariff.notes && (
+                <div className="text-xs text-muted-foreground mt-2 border-t pt-2">
+                  <strong>Note:</strong> {currentTariff.notes}
+                </div>
+              )}
+            </div>
+          )}
+
+          <div>
+            <label className="text-sm font-medium mb-2 block">Export Rate (£/kWh)</label>
+            <div className="flex items-center gap-2">
+              <input
+                type="number"
+                step="0.001"
+                value={exportRate}
+                onChange={(e) => setExportRate(parseFloat(e.target.value))}
+                className="flex-1 px-3 py-2 border rounded-md bg-background"
+              />
+              <span className="text-sm text-muted-foreground">
+                ({(exportRate * 100).toFixed(1)}p/kWh)
+              </span>
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">
+              Rate you're paid for exporting solar energy to the grid
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Import Rate Periods */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle>Import Rate Periods</CardTitle>
+              <CardDescription>Time-based import rates from the grid</CardDescription>
+            </div>
+            <Button onClick={handleAddNew} size="sm">
+              <Plus className="w-4 h-4 mr-2" />
+              Add Period
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent>
         <div className="space-y-3">
           {ratePeriods.map((period) => (
             <div
@@ -172,5 +263,6 @@ export function RateConfiguration() {
         </div>
       </CardContent>
     </Card>
+    </div>
   );
 }

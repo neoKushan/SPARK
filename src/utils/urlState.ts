@@ -50,7 +50,6 @@ export function encodeStateToUrl(state: UrlState): string {
     params.set('s_peff', state.solarConfig.panelEfficiency.toString());
     params.set('s_seff', state.solarConfig.systemEfficiency.toString());
     if (state.solarConfig.cost) params.set('s_cost', state.solarConfig.cost.toString());
-    if (state.solarConfig.exportRate) params.set('s_export', state.solarConfig.exportRate.toString());
     if (state.solarConfig.name) params.set('s_name', state.solarConfig.name);
   }
 
@@ -122,7 +121,6 @@ export function decodeStateFromUrl(searchParams: URLSearchParams): UrlState {
       panelEfficiency: parseFloat(searchParams.get('s_peff') || '20'),
       systemEfficiency: parseFloat(searchParams.get('s_seff') || '85'),
       cost: searchParams.get('s_cost') ? parseFloat(searchParams.get('s_cost')!) : undefined,
-      exportRate: searchParams.get('s_export') ? parseFloat(searchParams.get('s_export')!) : 0.15,
       name: searchParams.get('s_name') || undefined,
     };
   }

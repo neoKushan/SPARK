@@ -14,6 +14,7 @@ export function SolarCalculator() {
   const {
     consumptionData,
     ratePeriods,
+    exportRate,
     solarConfig,
     setSolarConfig,
     customSolarConfigs,
@@ -63,8 +64,8 @@ export function SolarCalculator() {
   // Solar-only analysis
   const analysis = useMemo(() => {
     if (consumptionData.length === 0 || !currentConfig) return null;
-    return simulateSolar(consumptionData, currentConfig, ratePeriods);
-  }, [consumptionData, currentConfig, ratePeriods]);
+    return simulateSolar(consumptionData, currentConfig, ratePeriods, exportRate);
+  }, [consumptionData, currentConfig, ratePeriods, exportRate]);
 
   const handleConfigSelect = (index: number) => {
     setSelectedConfig(index);
@@ -288,8 +289,8 @@ export function SolarCalculator() {
                   patterns. Actual generation may vary based on location, weather, and shading.
                 </p>
                 <p>
-                  Export rate: {((currentConfig.exportRate || 0.15) * 100).toFixed(1)}p/kWh
-                  (typical UK Smart Export Guarantee rate)
+                  Export rate: {(exportRate * 100).toFixed(1)}p/kWh
+                  (configured in Pricing tab)
                 </p>
               </div>
             </CardContent>

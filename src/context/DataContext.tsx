@@ -8,6 +8,7 @@ import type {
   DateRange,
   TimeFrame,
 } from '@/types/consumption';
+import { getTariffById } from '@/utils/tariffPresets';
 
 interface DataState {
   // Consumption data
@@ -16,8 +17,10 @@ interface DataState {
   fileName: string | null;
   dateRange: DateRange | null;
 
-  // Rate periods
+  // Rate periods and tariff
   ratePeriods: RatePeriod[];
+  currentTariffId: string | null;
+  exportRate: number;
 
   // Battery configuration
   batteryConfig: BatteryConfig | null;
@@ -36,11 +39,13 @@ interface DataState {
   setConsumptionData: (data: ConsumptionDataPoint[], fileName: string) => void;
   clearConsumptionData: () => void;
 
-  // Actions for rate periods
+  // Actions for rate periods and tariff
   addRatePeriod: (period: RatePeriod) => void;
   updateRatePeriod: (id: string, period: Partial<RatePeriod>) => void;
   deleteRatePeriod: (id: string) => void;
   setRatePeriods: (periods: RatePeriod[]) => void;
+  setTariff: (tariffId: string) => void;
+  setExportRate: (rate: number) => void;
 
   // Actions for battery
   setBatteryConfig: (config: BatteryConfig | null) => void;
@@ -102,6 +107,8 @@ export const useDataStore = create<DataState>()(
       fileName: null,
       dateRange: null,
       ratePeriods: defaultRatePeriods,
+      currentTariffId: 'octopus-intelligent-go',
+      exportRate: 0.15,
       batteryConfig: defaultBatteryConfig,
       customBatteryConfigs: [],
       solarConfig: null,
@@ -151,6 +158,20 @@ export const useDataStore = create<DataState>()(
 
       setRatePeriods: (periods) =>
         set({ ratePeriods: periods }),
+
+      setTariff: (tariffId) => {
+        const tariff = getTariffById(tariffId);
+        if (tariff) {
+          set({
+            currentTariffId: tariffId,
+            ratePeriods: tariff.ratePeriods,
+            exportRate: tariff.exportRate,
+          });
+        }
+      },
+
+      setExportRate: (rate) =>
+        set({ exportRate: rate }),
 
       // Battery actions
       setBatteryConfig: (config) =>
@@ -235,6 +256,8 @@ export const useDataStore = create<DataState>()(
       partialize: (state) => ({
         // Only persist these fields
         ratePeriods: state.ratePeriods,
+        currentTariffId: state.currentTariffId,
+        exportRate: state.exportRate,
         batteryConfig: state.batteryConfig,
         customBatteryConfigs: state.customBatteryConfigs,
         solarConfig: state.solarConfig,

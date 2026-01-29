@@ -1,0 +1,13 @@
+Provider,Tariff Name,Import: Off-Peak (p/kWh),Off-Peak Window,Import: Peak/Day (p/kWh),Standing Charge (p/day),Export Rate (p/kWh),Hardware / Eligibility Notes
+E.ON Next,Next Export Premium+,Standard (~27.7p),N/A,~27.7p,~53.8p,40.0p,Strict Lock-in: Requires E.ON solar+battery install since Jan 2024.
+E.ON Next,Next Solar Max,6.7p,00:00 - 07:00,~28.2p,~53.8p,16.5p,High Arbitrage: 9.8p spread. Requires GivEnergy battery & SMETS2 meter.
+EDF,Empower Exclusive V2,~17.7p (Discounted),01:00 - 04:00,~27.7p,0.0p (Yr 1),24.0p,Zero Standing Charge: Best for low users. Requires install via Contact Solar (EDF).
+Octopus,Intelligent Octopus Flux,Dynamic (Low),Variable,Dynamic,~45-55p,Dynamic,"Automated: Requires Tesla, GivEnergy, or specific inverters. Rates vary daily."
+Octopus,Intelligent Octopus Go,7.0p,23:30 - 05:30,~26-28p,~55p,15.0p,EV Required: Best import rate. Compatible with most batteries for charging.
+Octopus,Flux,~16.7p,02:00 - 05:00,~28p / ~39p (Peak),~45-55p,~22p (Peak),Open to all solar/battery users. 3-rate tariff (Flux/Day/Peak).
+OVO,Charge Anytime,14.0p,Smart Schedule,~27.7p,~55p,20.0p*,Rate Hike: Increased from 7p to 14p. EV only. *20p export requires OVO install.
+OVO,SEG Install Exclusive,Standard (~27.7p),N/A,~27.7p,~55p,20.0p,Requires OVO solar+battery install.
+British Gas,Charge Power,~13.9p (50% off),00:00 - 05:00,~27.7p,~55p,15.1p,Hardware Agnostic: Great for third-party batteries (Sigenergy/Pylontech).
+British Gas,EV Power,9.0p,12:00 - 05:00,~27.7p,~55p,15.1p,Requires EV. Good alternative if you can't get Intelligent Octopus.
+Scottish Power,EV Saver,7.2p,00:00 - 05:00,Fixed,Fixed,12-15p,Caution: Terms often exclude solar/battery households. Verify before switching.
+Good Energy,Solar Savings Excl.,Standard (~27.7p),N/A,~27.7p,~55p,25.0p,Requires install by Good Energy / JPS Renewables.
