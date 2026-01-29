@@ -16,11 +16,11 @@ import type { TimeFrame } from '@/types/consumption';
 export function Dashboard() {
   const { consumptionData, selectedTimeFrame, setSelectedTimeFrame, dateRange, ratePeriods, fileName } = useDataStore();
 
-  // Detect if using synthetic/example data
-  const isSyntheticData = fileName?.includes('Synthetic Data') || fileName?.includes('Example:');
+  // Detect if using shared configuration data (not example profiles)
+  const isSharedConfig = fileName?.includes('Shared Configuration');
 
-  // Set initial tab based on data type
-  const [activeTab, setActiveTab] = useState(isSyntheticData ? 'combined' : 'consumption');
+  // Set initial tab - shared configs go to combined, everything else to consumption
+  const [activeTab, setActiveTab] = useState(isSharedConfig ? 'combined' : 'consumption');
   const [viewMode, setViewMode] = useState<'kwh' | 'cost'>('kwh');
 
   // Calculate statistics
@@ -69,19 +69,19 @@ export function Dashboard() {
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="grid w-full grid-cols-5 lg:w-auto lg:grid-cols-5">
-          <TabsTrigger value="consumption" className="gap-2" disabled={isSyntheticData}>
+          <TabsTrigger value="consumption" className="gap-2" disabled={isSharedConfig}>
             <BarChart3 className="w-4 h-4" />
             Consumption
           </TabsTrigger>
-          <TabsTrigger value="pricing" className="gap-2" disabled={isSyntheticData}>
+          <TabsTrigger value="pricing" className="gap-2" disabled={isSharedConfig}>
             <DollarSign className="w-4 h-4" />
             Pricing
           </TabsTrigger>
-          <TabsTrigger value="battery" className="gap-2" disabled={isSyntheticData}>
+          <TabsTrigger value="battery" className="gap-2" disabled={isSharedConfig}>
             <Battery className="w-4 h-4" />
             Battery
           </TabsTrigger>
-          <TabsTrigger value="solar" className="gap-2" disabled={isSyntheticData}>
+          <TabsTrigger value="solar" className="gap-2" disabled={isSharedConfig}>
             <Sun className="w-4 h-4" />
             Solar
           </TabsTrigger>

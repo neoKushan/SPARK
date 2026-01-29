@@ -30,7 +30,7 @@ export function CombinedAnalysis() {
   } = useDataStore();
 
   const [copied, setCopied] = useState(false);
-  const isSyntheticData = fileName?.includes('Synthetic Data');
+  const isSharedConfig = fileName?.includes('Shared Configuration');
 
   // Calculate baseline costs (no solar/battery)
   const baselineCost = useMemo(() => {
@@ -150,8 +150,8 @@ export function CombinedAnalysis() {
         </div>
       </div>
 
-      {/* Synthetic Data Notice */}
-      {isSyntheticData && (
+      {/* Shared Configuration Notice */}
+      {isSharedConfig && (
         <Card className="border-blue-500/20 bg-blue-500/5">
           <CardContent className="pt-6">
             <div className="flex items-start gap-3">
