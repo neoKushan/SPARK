@@ -31,21 +31,21 @@ export function BatteryCalculator() {
   );
 
   // Combine presets and custom configs for selection
-  const allConfigs: BatteryConfig[] = useMemo(() => {
+  const allConfigs: (BatteryConfig | null)[] = useMemo(() => {
     const presetsWithIds = presets.map((preset, index) => ({
       ...preset,
       id: `preset-${index}`,
       minimumSoc: 10,
       maximumSoc: 100,
     }));
-    return [...presetsWithIds, ...customBatteryConfigs];
+    return [null, ...presetsWithIds, ...customBatteryConfigs];
   }, [customBatteryConfigs]);
 
   // Use current battery config or selected config
-  const currentConfig: BatteryConfig = batteryConfig || allConfigs[selectedConfig];
+  const currentConfig: BatteryConfig | null = batteryConfig !== undefined ? batteryConfig : allConfigs[selectedConfig];
 
   const analysis = useMemo(() => {
-    if (consumptionData.length === 0) return null;
+    if (consumptionData.length === 0 || !currentConfig) return null;
     return simulateBattery(consumptionData, currentConfig, ratePeriods);
   }, [consumptionData, currentConfig, ratePeriods]);
 
@@ -91,7 +91,7 @@ export function BatteryCalculator() {
           <div className="grid gap-3 md:grid-cols-2">
             {allConfigs.map((config, index) => (
               <button
-                key={config.id || index}
+                key={config?.id || index}
                 onClick={() => handleConfigSelect(index)}
                 className={`p-4 text-left border rounded-lg transition-all ${
                   selectedConfig === index
@@ -99,20 +99,31 @@ export function BatteryCalculator() {
                     : 'border-border hover:border-primary/50'
                 }`}
               >
-                <div className="font-bold text-lg">{config.name}</div>
-                {config.description && (
-                  <div className="text-sm text-muted-foreground mt-1">{config.description}</div>
-                )}
-                <div className="flex items-center justify-between mt-2">
-                  <div className="text-xs text-muted-foreground">
-                    {config.chargeRate}kW charge • {config.roundtripEfficiency}% efficiency
-                  </div>
-                  {config.cost && (
-                    <div className="text-sm font-semibold text-primary">
-                      £{config.cost.toLocaleString()}
+                {config === null ? (
+                  <>
+                    <div className="font-bold text-lg">None</div>
+                    <div className="text-sm text-muted-foreground mt-1">
+                      No battery - compare grid-only scenario
                     </div>
-                  )}
-                </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="font-bold text-lg">{config.name}</div>
+                    {config.description && (
+                      <div className="text-sm text-muted-foreground mt-1">{config.description}</div>
+                    )}
+                    <div className="flex items-center justify-between mt-2">
+                      <div className="text-xs text-muted-foreground">
+                        {config.chargeRate}kW charge • {config.roundtripEfficiency}% efficiency
+                      </div>
+                      {config.cost && (
+                        <div className="text-sm font-semibold text-primary">
+                          £{config.cost.toLocaleString()}
+                        </div>
+                      )}
+                    </div>
+                  </>
+                )}
               </button>
             ))}
           </div>
@@ -128,7 +139,7 @@ export function BatteryCalculator() {
       />
 
       {/* Savings Analysis */}
-      {analysis && (
+      {analysis && currentConfig && (
         <>
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             <Card>
@@ -281,7 +292,7 @@ export function BatteryCalculator() {
 
       {showComparison && (
         <BatteryComparison
-          configs={allConfigs}
+          configs={allConfigs.filter((c): c is BatteryConfig => c !== null)}
           consumptionData={consumptionData}
           ratePeriods={ratePeriods}
           onSelectConfig={(config) => {

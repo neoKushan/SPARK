@@ -43,14 +43,14 @@ interface DataState {
   setRatePeriods: (periods: RatePeriod[]) => void;
 
   // Actions for battery
-  setBatteryConfig: (config: BatteryConfig) => void;
+  setBatteryConfig: (config: BatteryConfig | null) => void;
   clearBatteryConfig: () => void;
   addCustomBattery: (config: BatteryConfig) => void;
   updateCustomBattery: (id: string, config: Partial<BatteryConfig>) => void;
   deleteCustomBattery: (id: string) => void;
 
   // Actions for solar
-  setSolarConfig: (config: SolarConfig) => void;
+  setSolarConfig: (config: SolarConfig | null) => void;
   clearSolarConfig: () => void;
   addCustomSolar: (config: SolarConfig) => void;
   updateCustomSolar: (id: string, config: Partial<SolarConfig>) => void;
