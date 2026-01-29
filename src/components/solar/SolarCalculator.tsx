@@ -26,7 +26,7 @@ export function SolarCalculator() {
     batteryConfig,
   } = useDataStore();
 
-  const [selectedPreset, setSelectedPreset] = useState<number>(1); // Default to Medium (4 kW)
+  const [selectedConfig, setSelectedConfig] = useState<number>(1); // Default to Medium (4 kW)
   const [activeTab, setActiveTab] = useState('analysis');
   const [showCombined, setShowCombined] = useState(false);
 
@@ -36,8 +36,17 @@ export function SolarCalculator() {
     [consumptionData]
   );
 
-  // Use current solar config or selected preset
-  const currentConfig: SolarConfig = solarConfig || presets[selectedPreset];
+  // Combine presets and custom configs for selection
+  const allConfigs: SolarConfig[] = useMemo(() => {
+    const presetsWithIds = presets.map((preset, index) => ({
+      ...preset,
+      id: `preset-${index}`,
+    }));
+    return [...presetsWithIds, ...customSolarConfigs];
+  }, [customSolarConfigs]);
+
+  // Use current solar config or selected config
+  const currentConfig: SolarConfig = solarConfig || allConfigs[selectedConfig];
 
   // Solar-only analysis
   const solarAnalysis = useMemo(() => {
@@ -56,9 +65,9 @@ export function SolarCalculator() {
     );
   }, [consumptionData, currentConfig, batteryConfig, ratePeriods]);
 
-  const handlePresetSelect = (index: number) => {
-    setSelectedPreset(index);
-    setSolarConfig(presets[index]);
+  const handleConfigSelect = (index: number) => {
+    setSelectedConfig(index);
+    setSolarConfig(allConfigs[index]);
   };
 
   if (consumptionData.length === 0) {
@@ -103,29 +112,31 @@ export function SolarCalculator() {
           <Card>
             <CardHeader>
               <CardTitle>Select Solar System</CardTitle>
-              <CardDescription>Choose from common solar panel configurations</CardDescription>
+              <CardDescription>Choose from preset and custom solar panel configurations</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="grid gap-3 md:grid-cols-2">
-                {presets.map((preset, index) => (
+                {allConfigs.map((config, index) => (
                   <button
-                    key={index}
-                    onClick={() => handlePresetSelect(index)}
+                    key={config.id || index}
+                    onClick={() => handleConfigSelect(index)}
                     className={`p-4 text-left border rounded-lg transition-all ${
-                      selectedPreset === index
+                      selectedConfig === index
                         ? 'border-primary bg-primary/5'
                         : 'border-border hover:border-primary/50'
                     }`}
                   >
-                    <div className="font-bold text-lg">{preset.name}</div>
-                    <div className="text-sm text-muted-foreground mt-1">{preset.description}</div>
+                    <div className="font-bold text-lg">{config.name}</div>
+                    {config.description && (
+                      <div className="text-sm text-muted-foreground mt-1">{config.description}</div>
+                    )}
                     <div className="flex items-center justify-between mt-2">
                       <div className="text-xs text-muted-foreground">
-                        {preset.panelEfficiency}% efficiency • {preset.orientation} facing
+                        {config.panelEfficiency}% efficiency • {config.orientation} facing
                       </div>
-                      {preset.cost && (
+                      {config.cost && (
                         <div className="text-sm font-semibold text-primary">
-                          £{preset.cost.toLocaleString()}
+                          £{config.cost.toLocaleString()}
                         </div>
                       )}
                     </div>

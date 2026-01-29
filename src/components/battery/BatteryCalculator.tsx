@@ -22,7 +22,7 @@ export function BatteryCalculator() {
     deleteCustomBattery,
   } = useDataStore();
 
-  const [selectedPreset, setSelectedPreset] = useState<number>(1); // Default to Medium (10 kWh)
+  const [selectedConfig, setSelectedConfig] = useState<number>(1); // Default to Medium (10 kWh)
   const [activeTab, setActiveTab] = useState('analysis');
 
   const presets = getBatteryPresets();
@@ -31,24 +31,7 @@ export function BatteryCalculator() {
     [consumptionData, ratePeriods]
   );
 
-  // Use current battery config or selected preset
-  const currentConfig: BatteryConfig = batteryConfig || presets[selectedPreset];
-
-  const analysis = useMemo(() => {
-    if (consumptionData.length === 0) return null;
-    return simulateBattery(consumptionData, currentConfig, ratePeriods);
-  }, [consumptionData, currentConfig, ratePeriods]);
-
-  const handlePresetSelect = (index: number) => {
-    setSelectedPreset(index);
-    setBatteryConfig({
-      ...presets[index],
-      minimumSoc: 10,
-      maximumSoc: 100,
-    });
-  };
-
-  // Combine presets and custom configs for comparison
+  // Combine presets and custom configs for selection
   const allConfigs: BatteryConfig[] = useMemo(() => {
     const presetsWithIds = presets.map((preset, index) => ({
       ...preset,
@@ -57,7 +40,20 @@ export function BatteryCalculator() {
       maximumSoc: 100,
     }));
     return [...presetsWithIds, ...customBatteryConfigs];
-  }, [presets, customBatteryConfigs]);
+  }, [customBatteryConfigs]);
+
+  // Use current battery config or selected config
+  const currentConfig: BatteryConfig = batteryConfig || allConfigs[selectedConfig];
+
+  const analysis = useMemo(() => {
+    if (consumptionData.length === 0) return null;
+    return simulateBattery(consumptionData, currentConfig, ratePeriods);
+  }, [consumptionData, currentConfig, ratePeriods]);
+
+  const handleConfigSelect = (index: number) => {
+    setSelectedConfig(index);
+    setBatteryConfig(allConfigs[index]);
+  };
 
   if (consumptionData.length === 0) {
     return (
@@ -99,29 +95,31 @@ export function BatteryCalculator() {
           <Card>
             <CardHeader>
               <CardTitle>Select Battery Size</CardTitle>
-              <CardDescription>Choose from common battery configurations</CardDescription>
+              <CardDescription>Choose from preset and custom battery configurations</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="grid gap-3 md:grid-cols-2">
-                {presets.map((preset, index) => (
+                {allConfigs.map((config, index) => (
                   <button
-                    key={index}
-                    onClick={() => handlePresetSelect(index)}
+                    key={config.id || index}
+                    onClick={() => handleConfigSelect(index)}
                     className={`p-4 text-left border rounded-lg transition-all ${
-                      selectedPreset === index
+                      selectedConfig === index
                         ? 'border-primary bg-primary/5'
                         : 'border-border hover:border-primary/50'
                     }`}
                   >
-                    <div className="font-bold text-lg">{preset.name}</div>
-                    <div className="text-sm text-muted-foreground mt-1">{preset.description}</div>
+                    <div className="font-bold text-lg">{config.name}</div>
+                    {config.description && (
+                      <div className="text-sm text-muted-foreground mt-1">{config.description}</div>
+                    )}
                     <div className="flex items-center justify-between mt-2">
                       <div className="text-xs text-muted-foreground">
-                        {preset.chargeRate}kW charge • {preset.roundtripEfficiency}% efficiency
+                        {config.chargeRate}kW charge • {config.roundtripEfficiency}% efficiency
                       </div>
-                      {preset.cost && (
+                      {config.cost && (
                         <div className="text-sm font-semibold text-primary">
-                          £{preset.cost.toLocaleString()}
+                          £{config.cost.toLocaleString()}
                         </div>
                       )}
                     </div>
