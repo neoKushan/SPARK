@@ -231,7 +231,7 @@ export const useDataStore = create<DataState>()(
         }),
     }),
     {
-      name: 'octoview-storage',
+      name: 'spark-storage',
       partialize: (state) => ({
         // Only persist these fields
         ratePeriods: state.ratePeriods,

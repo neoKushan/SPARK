@@ -1,8 +1,8 @@
-# OctoView - Energy Consumption Visualizer
+# SPARK - Solar Planning And ROI Kit
 
 > **Note:** This project was created almost entirely using Large Language Models (LLMs), specifically Claude Code. The design, implementation, and documentation were generated through AI assistance.
 
-A beautiful, interactive web application for visualizing and analyzing energy consumption data from CSV files. Built specifically for Octopus Energy users but compatible with any similar 30-minute interval energy data.
+A beautiful, interactive web application for visualizing and analyzing energy consumption data from CSV files. Calculate potential savings from solar panels, battery storage, or combined systems based on your actual usage patterns.
 
 ## Features
 
@@ -23,10 +23,6 @@ A beautiful, interactive web application for visualizing and analyzing energy co
 
 ### 🔋 **Battery Calculator**
 - Simulate battery performance and savings
-- **Three Analysis Modes:**
-  - **Analysis**: Detailed savings breakdown for selected battery
-  - **Compare**: Side-by-side comparison of all battery options with ROI
-  - **Custom Batteries**: Add and manage your own battery configurations
 - Common battery size presets with realistic costs:
   - Small (5 kWh) - £3,500
   - Medium (10 kWh) - £6,000
@@ -41,6 +37,24 @@ A beautiful, interactive web application for visualizing and analyzing energy co
   - ROI comparison
 - Winter coverage analysis
 - Savings breakdown by rate period
+- Custom battery configurations
+- Side-by-side battery comparison
+
+### ☀️ **Solar Calculator**
+- Simulate solar panel performance and savings
+- Multiple system size presets (2kW - 8kW)
+- Detailed generation and financial analysis
+- Export earnings calculations
+- Self-consumption metrics
+- Custom solar configurations
+
+### 🌟 **Combined Analysis**
+- Comprehensive analysis of solar + battery systems
+- Compare different system configurations
+- Grid-only vs. system cost comparisons
+- Energy flow visualization
+- Share configurations via URL
+- Manual annual usage entry for quick estimates
 
 ### 🎨 **Beautiful UI**
 - Modern, clean design with Tailwind CSS
@@ -71,8 +85,8 @@ A beautiful, interactive web application for visualizing and analyzing energy co
 
 ```bash
 # Clone the repository
-git clone https://github.com/neoKushan/OctoView.git
-cd OctoView
+git clone https://github.com/neoKushan/SPARK.git
+cd SPARK
 
 # Install dependencies
 npm install
@@ -91,14 +105,15 @@ npm run preview
 
 This project is configured to automatically deploy to GitHub Pages using GitHub Actions. Simply push to the `main` branch and the workflow will build and deploy the site.
 
-The live site is available at: https://octoview.stevedonaghy.com
+The live site is available at: https://spark.stevedonaghy.com
 
 ## Usage
 
 1. **Upload Data**
    - Click or drag-and-drop your CSV file
    - CSV format: `Consumption (kwh), Start, End`
-   - Example:
+   - Or enter your annual kWh usage for quick estimates
+   - Example CSV:
      ```csv
      Consumption (kwh), Start, End
      0.579000, 2025-10-09T12:00:00+01:00, 2025-10-09T12:30:00+01:00
@@ -118,11 +133,22 @@ The live site is available at: https://octoview.stevedonaghy.com
 
 4. **Calculate Battery Savings**
    - Go to the "Battery" tab
-   - **Analysis Tab**: See recommended battery size and detailed savings for selected battery
-   - **Compare Tab**: View side-by-side comparison of all batteries with ROI
-   - **Custom Batteries Tab**: Add your own battery configurations with custom costs
+   - See recommended battery size based on your consumption
    - Select from preset battery configurations or create custom ones
    - Review detailed savings analysis and payback periods
+   - Compare all battery options side-by-side
+
+5. **Calculate Solar Savings**
+   - Go to the "Solar" tab
+   - See recommended solar system size
+   - Select from preset configurations or create custom ones
+   - View generation estimates and financial analysis
+
+6. **View Combined Summary**
+   - Navigate to the "Summary" tab
+   - See comprehensive analysis of your selected systems
+   - Compare with grid-only costs
+   - Share your configuration via URL
 
 ## CSV Data Format
 
@@ -132,7 +158,7 @@ The application expects CSV files with the following structure:
 - **Start**: ISO 8601 timestamp with timezone (e.g., `2025-10-09T12:00:00+01:00`)
 - **End**: ISO 8601 timestamp with timezone (e.g., `2025-10-09T12:30:00+01:00`)
 
-Compatible with Octopus Energy export format.
+Compatible with Octopus Energy and other smart meter exports in 30-minute intervals.
 
 ## Features in Detail
 
@@ -154,29 +180,31 @@ The battery simulator:
 - Maintains configurable minimum state of charge (default 10%)
 - Uses actual battery costs for accurate payback calculations
 
-### Custom Battery Configurations
+### Solar Simulation
 
-Add your own battery options with:
-- Custom name (e.g., "Tesla Powerwall 3")
-- Capacity in kWh
-- Charge and discharge rates in kW
-- Roundtrip efficiency percentage
-- Upfront cost in £ for accurate ROI calculations
+The solar simulator:
+- Uses UK average irradiance patterns
+- Accounts for panel orientation and tilt
+- Calculates self-consumption and export
+- Applies system efficiency losses
+- Estimates annual generation
+- Calculates export earnings (Smart Export Guarantee)
 
-### Battery Comparison
+### Custom Configurations
 
-The comparison view shows:
-- All battery configurations (presets + custom) side-by-side
-- Cost, annual savings, payback period, self-sufficiency, and ROI for each
-- Highlights the battery with the best ROI
-- Both table and card layouts for easy comparison
+Add your own battery or solar options with:
+- Custom name
+- Capacity/size specifications
+- Performance parameters
+- Upfront cost for accurate ROI calculations
 
 ### Data Storage
 
 - CSV data is kept in memory (not persisted)
 - Rate configurations persist in localStorage
 - Battery configurations persist in localStorage
-- Custom battery configurations persist in localStorage
+- Solar configurations persist in localStorage
+- Custom configurations persist in localStorage
 - Dark mode preference persists
 
 ## Development
@@ -184,13 +212,12 @@ The comparison view shows:
 ### Project Structure
 
 ```
-OctoView/
+SPARK/
 ├── src/
 │   ├── components/          # React components
 │   │   ├── battery/        # Battery calculator components
-│   │   │   ├── BatteryCalculator.tsx    # Main battery calculator with tabs
-│   │   │   ├── BatteryComparison.tsx    # Battery comparison view
-│   │   │   └── BatteryConfigurator.tsx  # Custom battery configuration
+│   │   ├── solar/          # Solar calculator components
+│   │   ├── combined/       # Combined analysis
 │   │   ├── layout/         # Layout components (Header, etc.)
 │   │   ├── pricing/        # Pricing components
 │   │   ├── ui/             # Reusable UI primitives (shadcn/ui)
@@ -202,7 +229,9 @@ OctoView/
 │   │   ├── csvParser.ts           # CSV parsing logic
 │   │   ├── aggregationUtils.ts    # Data aggregation
 │   │   ├── pricingCalculator.ts   # Cost calculations
-│   │   └── batterySimulator.ts    # Battery simulation
+│   │   ├── batterySimulator.ts    # Battery simulation
+│   │   ├── solarSimulator.ts      # Solar simulation
+│   │   └── urlState.ts            # URL sharing logic
 │   └── App.tsx             # Main app component
 ├── public/                 # Static assets
 └── index.html             # HTML entry point
@@ -226,6 +255,16 @@ For each 30-minute interval:
   - Track state of charge and battery action
 ```
 
+#### Solar Simulation
+```
+For each 30-minute interval:
+  - Calculate solar generation based on time of day and season
+  - Apply panel orientation and tilt factors
+  - Calculate self-consumed vs. exported energy
+  - Apply system efficiency losses
+  - Calculate savings and export earnings
+```
+
 #### ROI Calculation
 ```
 ROI % = (Annual Savings / Upfront Cost) × 100
@@ -243,8 +282,8 @@ MIT License - feel free to use this project for any purpose.
 ## Acknowledgments
 
 - Built with React and modern web technologies
-- Designed for Octopus Energy users (Intelligent Octopus Go tariff)
-- Inspired by the need for better energy consumption insights
+- Designed for UK energy market (works with any time-of-use tariff)
+- Inspired by the need for better renewable energy planning tools
 - UI components from shadcn/ui
 - Created with assistance from Claude Code (Anthropic)
 

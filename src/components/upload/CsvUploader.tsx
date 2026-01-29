@@ -146,13 +146,13 @@ export function CsvUploader() {
       {/* About Section */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-2xl">OctoView - Energy Analysis Tool</CardTitle>
+          <CardTitle className="text-2xl">SPARK - Solar Planning And ROI Kit</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div>
             <h3 className="font-semibold mb-2">What does this tool do?</h3>
             <p className="text-sm text-muted-foreground">
-              OctoView analyzes your energy consumption data to help you optimize your electricity costs
+              SPARK analyzes your energy consumption data to help you optimize your electricity costs
               and plan renewable energy investments. It provides detailed insights on battery storage,
               solar panel systems, and combined solutions tailored to your usage patterns.
             </p>

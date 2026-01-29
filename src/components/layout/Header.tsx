@@ -11,8 +11,8 @@ export function Header() {
         <div className="flex items-center gap-2">
           <Zap className="w-8 h-8 text-primary" />
           <div>
-            <h1 className="text-2xl font-bold">OctoView</h1>
-            <p className="text-xs text-muted-foreground">Energy Visualizer</p>
+            <h1 className="text-2xl font-bold">SPARK</h1>
+            <p className="text-xs text-muted-foreground">Solar Planning And ROI Kit</p>
           </div>
         </div>
 
