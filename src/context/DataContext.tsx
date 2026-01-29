@@ -20,6 +20,7 @@ interface DataState {
 
   // Battery configuration
   batteryConfig: BatteryConfig | null;
+  customBatteryConfigs: BatteryConfig[];
 
   // UI State
   selectedTimeFrame: TimeFrame;
@@ -39,6 +40,9 @@ interface DataState {
   // Actions for battery
   setBatteryConfig: (config: BatteryConfig) => void;
   clearBatteryConfig: () => void;
+  addCustomBattery: (config: BatteryConfig) => void;
+  updateCustomBattery: (id: string, config: Partial<BatteryConfig>) => void;
+  deleteCustomBattery: (id: string) => void;
 
   // Actions for UI state
   setSelectedTimeFrame: (timeFrame: TimeFrame) => void;
@@ -87,6 +91,7 @@ export const useDataStore = create<DataState>()(
       dateRange: null,
       ratePeriods: defaultRatePeriods,
       batteryConfig: defaultBatteryConfig,
+      customBatteryConfigs: [],
       selectedTimeFrame: 'day',
       customDateRange: null,
       darkMode: false,
@@ -140,6 +145,23 @@ export const useDataStore = create<DataState>()(
       clearBatteryConfig: () =>
         set({ batteryConfig: null }),
 
+      addCustomBattery: (config) =>
+        set((state) => ({
+          customBatteryConfigs: [...state.customBatteryConfigs, config],
+        })),
+
+      updateCustomBattery: (id, config) =>
+        set((state) => ({
+          customBatteryConfigs: state.customBatteryConfigs.map((c) =>
+            c.id === id ? { ...c, ...config } : c
+          ),
+        })),
+
+      deleteCustomBattery: (id) =>
+        set((state) => ({
+          customBatteryConfigs: state.customBatteryConfigs.filter((c) => c.id !== id),
+        })),
+
       // UI state actions
       setSelectedTimeFrame: (timeFrame) =>
         set({ selectedTimeFrame: timeFrame }),
@@ -176,6 +198,7 @@ export const useDataStore = create<DataState>()(
         // Only persist these fields
         ratePeriods: state.ratePeriods,
         batteryConfig: state.batteryConfig,
+        customBatteryConfigs: state.customBatteryConfigs,
         darkMode: state.darkMode,
         // Don't persist consumption data (too large for localStorage)
       }),

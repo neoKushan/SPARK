@@ -85,10 +85,13 @@ export interface DateRange {
  * Battery configuration for simulation
  */
 export interface BatteryConfig {
+  id?: string;               // Unique identifier for user-defined configs
+  name?: string;             // Custom name (e.g., "Tesla Powerwall 3")
   capacity: number;          // kWh (e.g., 5, 10, 13.5)
   chargeRate: number;        // kW max charging power
   dischargeRate: number;     // kW max discharging power
   roundtripEfficiency: number; // Percentage (e.g., 90 for 90%)
+  cost?: number;             // Upfront cost in £ (optional)
   minimumSoc?: number;       // Minimum state of charge % (optional, default 10%)
   maximumSoc?: number;       // Maximum state of charge % (optional, default 100%)
 }
@@ -102,6 +105,7 @@ export interface BatteryPreset {
   chargeRate: number;
   dischargeRate: number;
   roundtripEfficiency: number;
+  cost?: number;             // Estimated cost in £
   description: string;
 }
 

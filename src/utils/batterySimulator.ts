@@ -112,8 +112,8 @@ export function simulateBattery(
   // Calculate annual estimate
   const annualEstimate = dailyAverageSavings * 365;
 
-  // Calculate payback period (assuming battery cost of £500 per kWh)
-  const batteryCost = batteryConfig.capacity * 500;
+  // Calculate payback period using actual cost or default to £500 per kWh
+  const batteryCost = batteryConfig.cost || (batteryConfig.capacity * 500);
   const paybackPeriod = annualEstimate > 0 ? batteryCost / annualEstimate : Infinity;
 
   // Calculate self-consumption rate
@@ -273,6 +273,7 @@ export function getBatteryPresets() {
       chargeRate: 3,
       dischargeRate: 3,
       roundtripEfficiency: 90,
+      cost: 3500,
       description: 'Suitable for small homes or apartments',
     },
     {
@@ -281,6 +282,7 @@ export function getBatteryPresets() {
       chargeRate: 5,
       dischargeRate: 5,
       roundtripEfficiency: 90,
+      cost: 6000,
       description: 'Good for average homes',
     },
     {
@@ -289,6 +291,7 @@ export function getBatteryPresets() {
       chargeRate: 5,
       dischargeRate: 5,
       roundtripEfficiency: 90,
+      cost: 8000,
       description: 'Tesla Powerwall 2 equivalent, suitable for larger homes',
     },
     {
@@ -297,6 +300,7 @@ export function getBatteryPresets() {
       chargeRate: 7,
       dischargeRate: 7,
       roundtripEfficiency: 90,
+      cost: 12000,
       description: 'For large homes with high consumption',
     },
   ];
