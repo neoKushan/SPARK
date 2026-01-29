@@ -87,6 +87,7 @@ export interface DateRange {
 export interface BatteryConfig {
   id?: string;               // Unique identifier for user-defined configs
   name?: string;             // Custom name (e.g., "Tesla Powerwall 3")
+  description?: string;      // Description of the battery system
   capacity: number;          // kWh (e.g., 5, 10, 13.5)
   chargeRate: number;        // kW max charging power
   dischargeRate: number;     // kW max discharging power
@@ -146,6 +147,7 @@ export interface BatteryAnalysis {
 export interface SolarConfig {
   id?: string;                   // Unique identifier
   name?: string;                 // Custom name (e.g., "Rooftop 4kW System")
+  description?: string;          // Description of the solar system
   capacity: number;              // kW peak capacity (e.g., 4.0)
   panelEfficiency: number;       // Percentage (e.g., 20 for 20% efficient panels)
   systemEfficiency: number;      // Overall system efficiency including inverter losses (e.g., 85%)
