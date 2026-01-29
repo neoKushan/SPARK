@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react';
-import { Upload, FileText, AlertCircle, CheckCircle, ExternalLink, ChevronDown, ChevronUp, Sparkles } from 'lucide-react';
+import { Upload, FileText, AlertCircle, CheckCircle, ExternalLink, ChevronDown, ChevronUp, Sparkles, Shield } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { parseEnergyConsumptionCsv, validateFile } from '@/utils/csvParser';
@@ -104,14 +104,60 @@ export function CsvUploader() {
   );
 
   return (
-    <Card className="w-full max-w-2xl mx-auto">
-      <CardHeader>
-        <CardTitle className="text-2xl">Upload Energy Data</CardTitle>
-        <CardDescription>
-          Upload your energy consumption CSV file (format: Consumption (kwh), Start, End)
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
+    <div className="space-y-6 w-full max-w-2xl mx-auto">
+      {/* About Section */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-2xl">OctoView - Energy Analysis Tool</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div>
+            <h3 className="font-semibold mb-2">What does this tool do?</h3>
+            <p className="text-sm text-muted-foreground">
+              OctoView analyzes your energy consumption data to help you optimize your electricity costs
+              and plan renewable energy investments. It provides detailed insights on battery storage,
+              solar panel systems, and combined solutions tailored to your usage patterns.
+            </p>
+          </div>
+
+          <div>
+            <h3 className="font-semibold mb-2">Key Features:</h3>
+            <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside">
+              <li>Visualize your energy consumption patterns over time</li>
+              <li>Calculate costs based on time-of-use tariffs (e.g., Intelligent Octopus Go)</li>
+              <li>Estimate battery storage savings and payback periods</li>
+              <li>Simulate solar panel generation and financial returns</li>
+              <li>Analyze combined solar + battery systems</li>
+              <li>Share configurations via URL for easy comparison</li>
+            </ul>
+          </div>
+
+          <div className="border-t pt-4">
+            <div className="flex items-start gap-3">
+              <Shield className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
+              <div>
+                <h3 className="font-semibold text-green-700 dark:text-green-400 mb-1">
+                  Privacy First - 100% Client-Side Processing
+                </h3>
+                <p className="text-sm text-muted-foreground">
+                  All analysis happens entirely in your browser. Your energy data never leaves your device
+                  and is not sent to any server. You can even use this tool offline after the initial page load.
+                </p>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Upload Card */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-2xl">Upload Energy Data</CardTitle>
+          <CardDescription>
+            Upload your energy consumption CSV file (format: Consumption (kwh), Start, End)
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
         {/* Octopus Energy Export Instructions */}
         <div className="mb-6">
           <button
@@ -296,5 +342,6 @@ export function CsvUploader() {
         )}
       </CardContent>
     </Card>
+    </div>
   );
 }
