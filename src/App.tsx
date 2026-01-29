@@ -3,9 +3,32 @@ import { Header } from './components/layout/Header';
 import { CsvUploader } from './components/upload/CsvUploader';
 import { Dashboard } from './components/visualization/Dashboard';
 import { useDataStore } from './context/DataContext';
+import { decodeStateFromUrl, applyUrlState } from './utils/urlState';
 
 function App() {
-  const { darkMode, dataLoaded } = useDataStore();
+  const {
+    darkMode,
+    dataLoaded,
+    setRatePeriods,
+    setBatteryConfig,
+    setSolarConfig,
+  } = useDataStore();
+
+  // Load configuration from URL on mount
+  useEffect(() => {
+    const searchParams = new URLSearchParams(window.location.search);
+    const urlState = decodeStateFromUrl(searchParams);
+
+    if (Object.keys(urlState).length > 0) {
+      applyUrlState(urlState, {
+        setRatePeriods,
+        setBatteryConfig,
+        setSolarConfig,
+      });
+      // Clear URL params after loading
+      window.history.replaceState({}, '', window.location.pathname);
+    }
+  }, [setRatePeriods, setBatteryConfig, setSolarConfig]);
 
   // Apply dark mode class to document element
   useEffect(() => {

@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Calendar, TrendingUp, BarChart3, DollarSign, Battery, Sun } from 'lucide-react';
+import { Calendar, TrendingUp, BarChart3, DollarSign, Battery, Sun, Layers } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -7,6 +7,7 @@ import { ConsumptionChart } from './ConsumptionChart';
 import { PricingOverview } from '../pricing/PricingOverview';
 import { BatteryCalculator } from '../battery/BatteryCalculator';
 import { SolarCalculator } from '../solar/SolarCalculator';
+import { CombinedAnalysis } from '../combined/CombinedAnalysis';
 import { useDataStore } from '@/context/DataContext';
 import { aggregateByTimeFrame, calculateStatistics } from '@/utils/aggregationUtils';
 import { format } from 'date-fns';
@@ -62,7 +63,7 @@ export function Dashboard() {
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-4 lg:w-auto">
+        <TabsList className="grid w-full grid-cols-5 lg:w-auto lg:grid-cols-5">
           <TabsTrigger value="consumption" className="gap-2">
             <BarChart3 className="w-4 h-4" />
             Consumption
@@ -78,6 +79,10 @@ export function Dashboard() {
           <TabsTrigger value="solar" className="gap-2">
             <Sun className="w-4 h-4" />
             Solar
+          </TabsTrigger>
+          <TabsTrigger value="combined" className="gap-2">
+            <Layers className="w-4 h-4" />
+            Combined
           </TabsTrigger>
         </TabsList>
 
@@ -240,6 +245,11 @@ export function Dashboard() {
         {/* Solar Tab */}
         <TabsContent value="solar">
           <SolarCalculator />
+        </TabsContent>
+
+        {/* Combined Analysis Tab */}
+        <TabsContent value="combined">
+          <CombinedAnalysis />
         </TabsContent>
       </Tabs>
     </div>
