@@ -1,17 +1,21 @@
 import { useCallback, useState } from 'react';
-import { Upload, FileText, AlertCircle, CheckCircle, ExternalLink, ChevronDown, ChevronUp, Sparkles, Shield } from 'lucide-react';
+import { Upload, FileText, AlertCircle, CheckCircle, ExternalLink, ChevronDown, ChevronUp, Sparkles, Shield, Calculator } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { parseEnergyConsumptionCsv, validateFile } from '@/utils/csvParser';
 import { useDataStore } from '@/context/DataContext';
 import { format } from 'date-fns';
 import { exampleProfiles, generateExampleConsumption } from '@/utils/exampleProfiles';
+import { generateSyntheticConsumption, type ConsumptionSummary } from '@/utils/urlState';
 
 export function CsvUploader() {
   const [isDragging, setIsDragging] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showInstructions, setShowInstructions] = useState(false);
+  const [annualKwh, setAnnualKwh] = useState<string>('');
   const { setConsumptionData, fileName, dateRange } = useDataStore();
 
   const handleFile = useCallback(
@@ -102,6 +106,40 @@ export function CsvUploader() {
     },
     [setConsumptionData]
   );
+
+  const handleManualEntry = useCallback(() => {
+    const annual = parseFloat(annualKwh);
+
+    if (isNaN(annual) || annual <= 0) {
+      setError('Please enter a valid annual consumption value');
+      return;
+    }
+
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const avgDailyConsumption = annual / 365;
+      const endDate = new Date();
+      const startDate = new Date();
+      startDate.setFullYear(startDate.getFullYear() - 1);
+
+      const summary: ConsumptionSummary = {
+        avgDailyConsumption,
+        totalDays: 365,
+        dateStart: startDate.toISOString(),
+        dateEnd: endDate.toISOString(),
+      };
+
+      const data = generateSyntheticConsumption(summary);
+      setConsumptionData(data, `Manual Entry: ${annual.toLocaleString()} kWh/year`);
+      setAnnualKwh('');
+    } catch (err) {
+      setError('Failed to generate consumption data');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [annualKwh, setConsumptionData]);
 
   return (
     <div className="space-y-6 w-full max-w-2xl mx-auto">
@@ -250,6 +288,45 @@ export function CsvUploader() {
           <p className="text-xs text-muted-foreground mt-3">
             Example profiles use 12 months of realistic synthetic data to demonstrate the tool
           </p>
+        </div>
+
+        {/* Manual Entry */}
+        <div className="mb-6">
+          <div className="flex items-center gap-2 mb-3">
+            <Calculator className="w-4 h-4 text-primary" />
+            <h3 className="font-medium">Or Enter Your Annual Usage</h3>
+          </div>
+          <div className="p-4 border rounded-lg space-y-3">
+            <div className="space-y-2">
+              <Label htmlFor="annual-kwh">Annual Electricity Consumption (kWh)</Label>
+              <div className="flex gap-2">
+                <Input
+                  id="annual-kwh"
+                  type="number"
+                  placeholder="e.g., 3500"
+                  value={annualKwh}
+                  onChange={(e) => setAnnualKwh(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      handleManualEntry();
+                    }
+                  }}
+                  disabled={isLoading}
+                  className="flex-1"
+                />
+                <Button
+                  onClick={handleManualEntry}
+                  disabled={isLoading || !annualKwh}
+                >
+                  Generate
+                </Button>
+              </div>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Enter your total yearly electricity usage. You can find this on your annual energy statement or utility bill.
+              The tool will generate 12 months of realistic consumption patterns based on this average.
+            </p>
+          </div>
         </div>
 
         <div className="relative mb-6">
