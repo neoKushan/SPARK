@@ -17,7 +17,8 @@ import { matchRatePeriod } from './pricingCalculator';
  */
 function estimateGeneration(
   timestamp: Date,
-  config: SolarConfig
+  config: SolarConfig,
+  scalingFactor: number = 1.0
 ): number {
   const hour = getHours(timestamp);
   const month = getMonth(timestamp); // 0-11
@@ -62,9 +63,39 @@ function estimateGeneration(
     orientationFactor *
     tiltFactor *
     (config.panelEfficiency / 20) * // Normalize to 20% efficient panels
-    (config.systemEfficiency / 100);
+    (config.systemEfficiency / 100) *
+    scalingFactor; // Apply scaling factor for predicted annual output
 
   return Math.max(0, generation);
+}
+
+/**
+ * Calculate scaling factor for predicted annual output
+ * Returns 1.0 if no predicted output is provided
+ */
+function calculateScalingFactor(
+  data: ConsumptionDataPoint[],
+  config: SolarConfig
+): number {
+  if (!config.predictedAnnualOutput) {
+    return 1.0;
+  }
+
+  // Quick calculation of what the total generation would be without override
+  let estimatedTotal = 0;
+  for (const point of data) {
+    const intervalHours = differenceInHours(point.end, point.start, { roundingMethod: 'round' }) || 0.5;
+    const generationKw = estimateGeneration(point.start, config, 1.0);
+    estimatedTotal += generationKw * intervalHours;
+  }
+
+  // Scale to match predicted annual output
+  if (estimatedTotal === 0) return 1.0;
+
+  const datasetDays = data.length / 48;
+  const annualizedEstimate = (estimatedTotal / datasetDays) * 365;
+
+  return config.predictedAnnualOutput / annualizedEstimate;
 }
 
 /**
@@ -83,13 +114,14 @@ export function simulateSolar(
   let importSavings = 0;
 
   const exportRate = solarConfig.exportRate || 0.15; // Default UK SEG rate
+  const scalingFactor = calculateScalingFactor(data, solarConfig);
 
   for (const point of data) {
     const intervalHours = differenceInHours(point.end, point.start, { roundingMethod: 'round' }) || 0.5;
     const currentRate = matchRatePeriod(point.start, ratePeriods);
 
     // Estimate generation for this interval (kW average)
-    const generationKw = estimateGeneration(point.start, solarConfig);
+    const generationKw = estimateGeneration(point.start, solarConfig, scalingFactor);
     const generationKwh = generationKw * intervalHours;
 
     // Determine how much is consumed vs exported
@@ -167,13 +199,15 @@ export function simulateSolarWithBattery(
   const cheapRate = Math.min(...ratePeriods.map(p => p.ratePerKwh));
   const cheapPeriod = ratePeriods.find(p => p.ratePerKwh === cheapRate)!;
 
+  const scalingFactor = calculateScalingFactor(data, solarConfig);
+
   for (const point of data) {
     const intervalHours = differenceInHours(point.end, point.start, { roundingMethod: 'round' }) || 0.5;
     const currentRate = matchRatePeriod(point.start, ratePeriods);
     const isCheapPeriod = currentRate.id === cheapPeriod.id;
 
     // Solar generation
-    const generationKw = estimateGeneration(point.start, solarConfig);
+    const generationKw = estimateGeneration(point.start, solarConfig, scalingFactor);
     const generationKwh = generationKw * intervalHours;
     const consumptionKwh = point.consumption;
 

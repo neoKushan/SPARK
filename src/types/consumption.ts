@@ -155,6 +155,7 @@ export interface SolarConfig {
   tilt: number;                  // Angle in degrees (e.g., 35)
   cost?: number;                 // Upfront cost in £ (optional)
   exportRate?: number;           // Feed-in tariff rate per kWh (e.g., 0.15 for £0.15/kWh)
+  predictedAnnualOutput?: number; // Predicted annual generation in kWh (optional, overrides calculated values)
 }
 
 /**

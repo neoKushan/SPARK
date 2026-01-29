@@ -26,6 +26,7 @@ export function SolarConfigurator({ configs, onAdd, onUpdate, onDelete }: SolarC
       tilt: config.tilt,
       cost: config.cost,
       exportRate: config.exportRate,
+      predictedAnnualOutput: config.predictedAnnualOutput,
     });
   };
 
@@ -167,6 +168,25 @@ export function SolarConfigurator({ configs, onAdd, onUpdate, onDelete }: SolarC
                         className="w-full px-3 py-2 border rounded-md bg-background"
                       />
                     </div>
+                    <div className="md:col-span-2">
+                      <label className="text-sm font-medium mb-1 block">
+                        Predicted Annual Output (kWh/year)
+                        <span className="text-muted-foreground font-normal ml-2">
+                          (Optional - overrides calculated values)
+                        </span>
+                      </label>
+                      <input
+                        type="number"
+                        step="100"
+                        value={editForm.predictedAnnualOutput || ''}
+                        onChange={(e) => setEditForm({
+                          ...editForm,
+                          predictedAnnualOutput: e.target.value ? parseFloat(e.target.value) : undefined
+                        })}
+                        placeholder="Leave empty to calculate from system parameters"
+                        className="w-full px-3 py-2 border rounded-md bg-background"
+                      />
+                    </div>
                   </div>
                   <div className="flex gap-2">
                     <Button onClick={() => saveEdit(config.id!)} size="sm" className="gap-2">
@@ -190,6 +210,11 @@ export function SolarConfigurator({ configs, onAdd, onUpdate, onDelete }: SolarC
                     <div className="text-sm text-muted-foreground mt-1">
                       {config.panelEfficiency}% panel efficiency • {config.systemEfficiency}% system efficiency
                     </div>
+                    {config.predictedAnnualOutput && (
+                      <div className="text-sm font-medium text-accent-foreground mt-1">
+                        Predicted: {config.predictedAnnualOutput.toLocaleString()} kWh/year
+                      </div>
+                    )}
                     {config.cost && (
                       <div className="text-sm font-medium text-primary mt-1">
                         £{config.cost.toLocaleString()} • Export: {(config.exportRate! * 100).toFixed(1)}p/kWh
