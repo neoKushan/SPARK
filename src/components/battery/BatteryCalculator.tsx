@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { Battery, TrendingUp, Calendar, Zap } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -40,6 +40,24 @@ export function BatteryCalculator() {
     }));
     return [null, ...presetsWithIds, ...customBatteryConfigs];
   }, [customBatteryConfigs]);
+
+  // Sync selectedConfig with the store's batteryConfig
+  useEffect(() => {
+    if (batteryConfig !== undefined) {
+      // Find the index of the current config in allConfigs
+      const index = allConfigs.findIndex((config) => {
+        if (config === null && batteryConfig === null) return true;
+        if (config === null || batteryConfig === null) return false;
+        return config.id === batteryConfig.id ||
+               (config.capacity === batteryConfig.capacity &&
+                config.chargeRate === batteryConfig.chargeRate &&
+                config.dischargeRate === batteryConfig.dischargeRate);
+      });
+      if (index !== -1 && index !== selectedConfig) {
+        setSelectedConfig(index);
+      }
+    }
+  }, [batteryConfig, allConfigs]);
 
   // Use current battery config or selected config
   const currentConfig: BatteryConfig | null = batteryConfig !== undefined ? batteryConfig : allConfigs[selectedConfig];

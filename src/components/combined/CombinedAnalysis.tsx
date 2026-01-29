@@ -15,7 +15,8 @@ import {
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useDataStore } from '@/context/DataContext';
-import { simulateSolarWithBattery } from '@/utils/solarSimulator';
+import { simulateSolarWithBattery, simulateSolar } from '@/utils/solarSimulator';
+import { simulateBattery } from '@/utils/batterySimulator';
 import { calculateTotalCost } from '@/utils/pricingCalculator';
 import { encodeStateToUrl, type ConsumptionSummary } from '@/utils/urlState';
 import { differenceInDays, format } from 'date-fns';
@@ -58,10 +59,36 @@ export function CombinedAnalysis() {
     return calculateTotalCost(consumptionData, ratePeriods);
   }, [consumptionData, ratePeriods]);
 
-  // Calculate combined analysis
+  // Calculate analysis based on what's configured
   const analysis = useMemo(() => {
-    if (consumptionData.length === 0 || !solarConfig || !batteryConfig) return null;
-    return simulateSolarWithBattery(consumptionData, solarConfig, batteryConfig, ratePeriods);
+    if (consumptionData.length === 0) return null;
+
+    // Combined analysis (both solar and battery)
+    if (solarConfig && batteryConfig) {
+      return {
+        type: 'combined' as const,
+        ...simulateSolarWithBattery(consumptionData, solarConfig, batteryConfig, ratePeriods)
+      };
+    }
+
+    // Battery only analysis
+    if (batteryConfig && !solarConfig) {
+      return {
+        type: 'battery' as const,
+        ...simulateBattery(consumptionData, batteryConfig, ratePeriods)
+      };
+    }
+
+    // Solar only analysis
+    if (solarConfig && !batteryConfig) {
+      return {
+        type: 'solar' as const,
+        ...simulateSolar(consumptionData, solarConfig, ratePeriods)
+      };
+    }
+
+    // No system configured
+    return null;
   }, [consumptionData, solarConfig, batteryConfig, ratePeriods]);
 
   const handleShare = () => {
@@ -105,33 +132,25 @@ export function CombinedAnalysis() {
     );
   }
 
-  if (!solarConfig || !batteryConfig) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Combined Solar + Battery Analysis</CardTitle>
-          <CardDescription>
-            Configure both solar panels and battery storage to see combined analysis
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-2 text-sm text-muted-foreground">
-            {!solarConfig && <p>• Go to the Solar tab to configure solar panels</p>}
-            {!batteryConfig && <p>• Go to the Battery tab to configure battery storage</p>}
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  if (!analysis) return null;
-
-  const totalSystemCost = (solarConfig.cost || solarConfig.capacity * 1200) +
-                         (batteryConfig.cost || batteryConfig.capacity * 500);
+  // Calculate system cost based on what's configured
+  const totalSystemCost = useMemo(() => {
+    let cost = 0;
+    if (solarConfig) cost += (solarConfig.cost || solarConfig.capacity * 1200);
+    if (batteryConfig) cost += (batteryConfig.cost || batteryConfig.capacity * 500);
+    return cost;
+  }, [solarConfig, batteryConfig]);
 
   const annualBaselineCost = baselineCost * (365 / (consumptionData.length / 48));
-  const netAnnualCost = annualBaselineCost - analysis.annualEstimate;
-  const totalSavingsPercent = (analysis.annualEstimate / annualBaselineCost) * 100;
+  const netAnnualCost = analysis ? annualBaselineCost - analysis.annualEstimate : annualBaselineCost;
+  const totalSavingsPercent = analysis ? (analysis.annualEstimate / annualBaselineCost) * 100 : 0;
+
+  // Determine system title based on configuration
+  const systemTitle = useMemo(() => {
+    if (solarConfig && batteryConfig) return 'Solar + Battery System';
+    if (batteryConfig) return 'Battery System';
+    if (solarConfig) return 'Solar System';
+    return 'Grid-Only (No System)';
+  }, [solarConfig, batteryConfig]);
 
   return (
     <div className="space-y-6">
@@ -226,238 +245,309 @@ export function CombinedAnalysis() {
       )}
 
       {/* System Configuration Summary */}
-      <div className="grid gap-4 md:grid-cols-2">
-        <Card className="border-yellow-500/20 bg-yellow-500/5">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Sun className="w-5 h-5 text-yellow-500" />
-              Solar Configuration
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2 text-sm">
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Capacity:</span>
-              <span className="font-medium">{solarConfig.capacity} kW</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Orientation:</span>
-              <span className="font-medium capitalize">{solarConfig.orientation}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Tilt:</span>
-              <span className="font-medium">{solarConfig.tilt}°</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Cost:</span>
-              <span className="font-medium">£{(solarConfig.cost || solarConfig.capacity * 1200).toLocaleString()}</span>
-            </div>
-          </CardContent>
-        </Card>
+      {(solarConfig || batteryConfig) && (
+        <div className="grid gap-4 md:grid-cols-2">
+          {solarConfig && (
+            <Card className="border-yellow-500/20 bg-yellow-500/5">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Sun className="w-5 h-5 text-yellow-500" />
+                  Solar Configuration
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Capacity:</span>
+                  <span className="font-medium">{solarConfig.capacity} kW</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Orientation:</span>
+                  <span className="font-medium capitalize">{solarConfig.orientation}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Tilt:</span>
+                  <span className="font-medium">{solarConfig.tilt}°</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Cost:</span>
+                  <span className="font-medium">£{(solarConfig.cost || solarConfig.capacity * 1200).toLocaleString()}</span>
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
-        <Card className="border-blue-500/20 bg-blue-500/5">
+          {batteryConfig && (
+            <Card className="border-blue-500/20 bg-blue-500/5">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Battery className="w-5 h-5 text-blue-500" />
+                  Battery Configuration
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Capacity:</span>
+                  <span className="font-medium">{batteryConfig.capacity} kWh</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Charge Rate:</span>
+                  <span className="font-medium">{batteryConfig.chargeRate} kW</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Efficiency:</span>
+                  <span className="font-medium">{batteryConfig.roundtripEfficiency}%</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Cost:</span>
+                  <span className="font-medium">£{(batteryConfig.cost || batteryConfig.capacity * 500).toLocaleString()}</span>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      )}
+
+      {/* No System Configured Message */}
+      {!solarConfig && !batteryConfig && (
+        <Card className="border-orange-500/20 bg-orange-500/5">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Battery className="w-5 h-5 text-blue-500" />
-              Battery Configuration
+              <Info className="w-5 h-5 text-orange-500" />
+              No System Configured
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-2 text-sm">
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Capacity:</span>
-              <span className="font-medium">{batteryConfig.capacity} kWh</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Charge Rate:</span>
-              <span className="font-medium">{batteryConfig.chargeRate} kW</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Efficiency:</span>
-              <span className="font-medium">{batteryConfig.roundtripEfficiency}%</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Cost:</span>
-              <span className="font-medium">£{(batteryConfig.cost || batteryConfig.capacity * 500).toLocaleString()}</span>
+          <CardContent>
+            <p className="text-sm text-muted-foreground mb-3">
+              You're viewing grid-only costs. Configure a solar or battery system to see potential savings.
+            </p>
+            <div className="space-y-2 text-sm">
+              <p>• Go to the <strong>Solar</strong> tab to configure solar panels</p>
+              <p>• Go to the <strong>Battery</strong> tab to configure battery storage</p>
             </div>
           </CardContent>
         </Card>
-      </div>
+      )}
 
       {/* Key Metrics */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        {(solarConfig || batteryConfig) && (
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total System Cost</CardTitle>
+              <DollarSign className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">£{totalSystemCost.toLocaleString()}</div>
+              <p className="text-xs text-muted-foreground">
+                {systemTitle}
+              </p>
+            </CardContent>
+          </Card>
+        )}
+
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total System Cost</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">
+              {analysis ? 'Annual Savings' : 'Annual Cost'}
+            </CardTitle>
+            <TrendingUp className={`h-4 w-4 ${analysis ? 'text-green-500' : 'text-red-500'}`} />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">£{totalSystemCost.toLocaleString()}</div>
+            <div className={`text-2xl font-bold ${analysis ? 'text-green-600' : 'text-red-600'}`}>
+              {analysis ? `£${analysis.annualEstimate.toFixed(2)}` : `£${annualBaselineCost.toFixed(2)}`}
+            </div>
             <p className="text-xs text-muted-foreground">
-              Solar + Battery combined
+              {analysis ? `${totalSavingsPercent.toFixed(0)}% reduction vs grid-only` : 'Grid-only costs'}
             </p>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Annual Savings</CardTitle>
-            <TrendingUp className="h-4 w-4 text-green-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-600">
-              £{analysis.annualEstimate.toFixed(2)}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              {totalSavingsPercent.toFixed(0)}% reduction vs grid-only
-            </p>
-          </CardContent>
-        </Card>
+        {analysis && (
+          <>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Payback Period</CardTitle>
+                <Calendar className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {analysis.paybackPeriod < 100 ? `${analysis.paybackPeriod.toFixed(1)} years` : 'N/A'}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Break-even point
+                </p>
+              </CardContent>
+            </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Payback Period</CardTitle>
-            <Calendar className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {analysis.paybackPeriod < 100 ? `${analysis.paybackPeriod.toFixed(1)} years` : 'N/A'}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Break-even point
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Self-Sufficiency</CardTitle>
-            <Zap className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {analysis.selfSufficiencyRate.toFixed(1)}%
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Met by solar + battery
-            </p>
-          </CardContent>
-        </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">
+                  {analysis.type === 'combined' ? 'Self-Sufficiency' : 'Self-Consumption'}
+                </CardTitle>
+                <Zap className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {analysis.type === 'combined'
+                    ? analysis.selfSufficiencyRate?.toFixed(1)
+                    : analysis.selfConsumptionRate?.toFixed(1)}%
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  {analysis.type === 'combined'
+                    ? 'Met by solar + battery'
+                    : analysis.type === 'solar'
+                    ? 'Solar energy used on-site'
+                    : 'Consumption from battery'}
+                </p>
+              </CardContent>
+            </Card>
+          </>
+        )}
       </div>
 
       {/* Financial Comparison */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Annual Cost Comparison</CardTitle>
-          <CardDescription>Baseline vs Combined System</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <div className="flex items-center justify-between p-4 bg-red-500/10 border border-red-500/20 rounded-lg">
-              <div>
-                <div className="font-medium">Grid Only (Current)</div>
-                <div className="text-sm text-muted-foreground">No solar or battery</div>
+      {analysis && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Annual Cost Comparison</CardTitle>
+            <CardDescription>Baseline vs {systemTitle}</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between p-4 bg-red-500/10 border border-red-500/20 rounded-lg">
+                <div>
+                  <div className="font-medium">Grid Only (Current)</div>
+                  <div className="text-sm text-muted-foreground">No solar or battery</div>
+                </div>
+                <div className="text-right">
+                  <div className="text-2xl font-bold text-red-600">£{annualBaselineCost.toFixed(2)}</div>
+                  <div className="text-sm text-muted-foreground">per year</div>
+                </div>
               </div>
-              <div className="text-right">
-                <div className="text-2xl font-bold text-red-600">£{annualBaselineCost.toFixed(2)}</div>
-                <div className="text-sm text-muted-foreground">per year</div>
-              </div>
-            </div>
 
-            <div className="flex items-center justify-center">
-              <ArrowRight className="w-6 h-6 text-green-500" />
-            </div>
-
-            <div className="flex items-center justify-between p-4 bg-green-500/10 border border-green-500/20 rounded-lg">
-              <div>
-                <div className="font-medium">With Solar + Battery</div>
-                <div className="text-sm text-muted-foreground">After system savings</div>
+              <div className="flex items-center justify-center">
+                <ArrowRight className="w-6 h-6 text-green-500" />
               </div>
-              <div className="text-right">
-                <div className="text-2xl font-bold text-green-600">£{netAnnualCost.toFixed(2)}</div>
-                <div className="text-sm text-muted-foreground">per year</div>
+
+              <div className="flex items-center justify-between p-4 bg-green-500/10 border border-green-500/20 rounded-lg">
+                <div>
+                  <div className="font-medium">With {systemTitle}</div>
+                  <div className="text-sm text-muted-foreground">After system savings</div>
+                </div>
+                <div className="text-right">
+                  <div className="text-2xl font-bold text-green-600">£{netAnnualCost.toFixed(2)}</div>
+                  <div className="text-sm text-muted-foreground">per year</div>
+                </div>
+              </div>
+
+              <div className="p-4 bg-primary/10 border border-primary/20 rounded-lg text-center">
+                <div className="text-sm text-muted-foreground mb-1">Annual Savings</div>
+                <div className="text-3xl font-bold text-primary">£{analysis.annualEstimate.toFixed(2)}</div>
               </div>
             </div>
-
-            <div className="p-4 bg-primary/10 border border-primary/20 rounded-lg text-center">
-              <div className="text-sm text-muted-foreground mb-1">Annual Savings</div>
-              <div className="text-3xl font-bold text-primary">£{analysis.annualEstimate.toFixed(2)}</div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Energy Flow Breakdown */}
-      <div className="grid gap-4 md:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle>Energy Flow</CardTitle>
-            <CardDescription>How energy moves through your system</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-sm flex items-center gap-2">
-                  <Sun className="w-4 h-4 text-yellow-500" />
-                  Solar Generated
-                </span>
-                <span className="font-bold">{analysis.totalGeneration.toFixed(2)} kWh</span>
+      {analysis && (
+        <div className="grid gap-4 md:grid-cols-2">
+          <Card>
+            <CardHeader>
+              <CardTitle>Energy Flow</CardTitle>
+              <CardDescription>How energy moves through your system</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {(analysis.type === 'combined' || analysis.type === 'solar') && (
+                  <>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm flex items-center gap-2">
+                        <Sun className="w-4 h-4 text-yellow-500" />
+                        Solar Generated
+                      </span>
+                      <span className="font-bold">{analysis.totalGeneration?.toFixed(2)} kWh</span>
+                    </div>
+                    <div className="pl-6 space-y-2 border-l-2 border-muted ml-2">
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-muted-foreground">→ Self-Consumed</span>
+                        <span className="font-medium">{analysis.totalSelfConsumed?.toFixed(2)} kWh</span>
+                      </div>
+                      {analysis.type === 'combined' && analysis.totalBatteryCharged !== undefined && (
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="text-muted-foreground flex items-center gap-1">
+                            <Battery className="w-3 h-3" />
+                            → Battery Charged
+                          </span>
+                          <span className="font-medium">{analysis.totalBatteryCharged.toFixed(2)} kWh</span>
+                        </div>
+                      )}
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-muted-foreground">→ Exported</span>
+                        <span className="font-medium">{analysis.totalExported?.toFixed(2)} kWh</span>
+                      </div>
+                    </div>
+                  </>
+                )}
+                {(analysis.type === 'combined' || analysis.type === 'battery') && (
+                  <div className="flex items-center justify-between pt-2 border-t">
+                    <span className="text-sm flex items-center gap-2">
+                      <Battery className="w-4 h-4 text-blue-500" />
+                      Battery Discharged
+                    </span>
+                    <span className="font-bold">
+                      {analysis.type === 'combined' && analysis.totalBatteryDischarged !== undefined
+                        ? analysis.totalBatteryDischarged.toFixed(2)
+                        : analysis.type === 'battery' && analysis.states
+                        ? analysis.states
+                            .filter((s) => s.action === 'discharging')
+                            .reduce((sum, s) => sum + Math.abs(s.powerFlow) * 0.5, 0)
+                            .toFixed(2)
+                        : '0.00'} kWh
+                    </span>
+                  </div>
+                )}
               </div>
-              <div className="pl-6 space-y-2 border-l-2 border-muted ml-2">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-muted-foreground">→ Self-Consumed</span>
-                  <span className="font-medium">{analysis.totalSelfConsumed.toFixed(2)} kWh</span>
-                </div>
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-muted-foreground flex items-center gap-1">
-                    <Battery className="w-3 h-3" />
-                    → Battery Charged
-                  </span>
-                  <span className="font-medium">{analysis.totalBatteryCharged.toFixed(2)} kWh</span>
-                </div>
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-muted-foreground">→ Exported</span>
-                  <span className="font-medium">{analysis.totalExported.toFixed(2)} kWh</span>
-                </div>
-              </div>
-              <div className="flex items-center justify-between pt-2 border-t">
-                <span className="text-sm flex items-center gap-2">
-                  <Battery className="w-4 h-4 text-blue-500" />
-                  Battery Discharged
-                </span>
-                <span className="font-bold">{analysis.totalBatteryDischarged.toFixed(2)} kWh</span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Financial Breakdown</CardTitle>
-            <CardDescription>Where your savings come from</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Import Savings</span>
-                <span className="font-bold text-green-600">£{analysis.importSavings.toFixed(2)}</span>
+          <Card>
+            <CardHeader>
+              <CardTitle>Financial Breakdown</CardTitle>
+              <CardDescription>Where your savings come from</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-muted-foreground">Import Savings</span>
+                  <span className="font-bold text-green-600">
+                    £{(analysis.type === 'battery'
+                      ? analysis.totalSavings
+                      : analysis.importSavings
+                    )?.toFixed(2)}
+                  </span>
+                </div>
+                {(analysis.type === 'combined' || analysis.type === 'solar') && analysis.exportEarnings !== undefined && (
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-muted-foreground">Export Earnings</span>
+                    <span className="font-bold text-green-600">£{analysis.exportEarnings.toFixed(2)}</span>
+                  </div>
+                )}
+                <div className="flex items-center justify-between pt-3 border-t">
+                  <span className="font-medium">Total Savings</span>
+                  <span className="font-bold text-lg text-green-600">
+                    £{analysis.totalSavings?.toFixed(2)}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between pt-2 text-sm">
+                  <span className="text-muted-foreground">Daily Average</span>
+                  <span className="font-medium">£{analysis.dailyAverageSavings?.toFixed(2)}</span>
+                </div>
               </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Export Earnings</span>
-                <span className="font-bold text-green-600">£{analysis.exportEarnings.toFixed(2)}</span>
-              </div>
-              <div className="flex items-center justify-between pt-3 border-t">
-                <span className="font-medium">Total Savings</span>
-                <span className="font-bold text-lg text-green-600">
-                  £{analysis.totalSavings.toFixed(2)}
-                </span>
-              </div>
-              <div className="flex items-center justify-between pt-2 text-sm">
-                <span className="text-muted-foreground">Daily Average</span>
-                <span className="font-medium">£{analysis.dailyAverageSavings.toFixed(2)}</span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
 
       {/* Rates Information */}
       <Card className="bg-muted/30">
@@ -482,27 +572,37 @@ export function CombinedAnalysis() {
               </div>
             ))}
           </div>
-          <div className="mt-3 pt-3 border-t text-sm text-muted-foreground">
-            Export Rate: {((solarConfig.exportRate || 0.15) * 100).toFixed(1)}p/kWh
-          </div>
+          {solarConfig && (
+            <div className="mt-3 pt-3 border-t text-sm text-muted-foreground">
+              Export Rate: {((solarConfig.exportRate || 0.15) * 100).toFixed(1)}p/kWh
+            </div>
+          )}
         </CardContent>
       </Card>
 
       {/* Important Notes */}
-      <Card className="border-blue-500/20 bg-blue-500/5">
-        <CardContent className="pt-6">
-          <div className="text-sm space-y-2">
-            <p className="font-medium">Important Notes:</p>
-            <ul className="list-disc list-inside space-y-1 text-muted-foreground">
-              <li>Analysis based on {consumptionData.length / 48} days of consumption data</li>
-              <li>Solar generation estimates use UK average irradiance patterns</li>
-              <li>Actual results may vary based on location, weather, and shading</li>
-              <li>Battery simulation assumes optimal charging/discharging strategy</li>
-              <li>Export rate: {((solarConfig.exportRate || 0.15) * 100).toFixed(1)}p/kWh (UK Smart Export Guarantee)</li>
-            </ul>
-          </div>
-        </CardContent>
-      </Card>
+      {analysis && (
+        <Card className="border-blue-500/20 bg-blue-500/5">
+          <CardContent className="pt-6">
+            <div className="text-sm space-y-2">
+              <p className="font-medium">Important Notes:</p>
+              <ul className="list-disc list-inside space-y-1 text-muted-foreground">
+                <li>Analysis based on {consumptionData.length / 48} days of consumption data</li>
+                {(analysis.type === 'combined' || analysis.type === 'solar') && (
+                  <>
+                    <li>Solar generation estimates use UK average irradiance patterns</li>
+                    <li>Actual results may vary based on location, weather, and shading</li>
+                    <li>Export rate: {((solarConfig?.exportRate || 0.15) * 100).toFixed(1)}p/kWh (UK Smart Export Guarantee)</li>
+                  </>
+                )}
+                {(analysis.type === 'combined' || analysis.type === 'battery') && (
+                  <li>Battery simulation assumes optimal charging/discharging strategy</li>
+                )}
+              </ul>
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }

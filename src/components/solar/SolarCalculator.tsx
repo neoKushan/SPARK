@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { Sun, TrendingUp, Calendar, Zap } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useDataStore } from '@/context/DataContext';
@@ -39,6 +39,24 @@ export function SolarCalculator() {
     return [null, ...presetsWithIds, ...customSolarConfigs];
   }, [customSolarConfigs]);
 
+  // Sync selectedConfig with the store's solarConfig
+  useEffect(() => {
+    if (solarConfig !== undefined) {
+      // Find the index of the current config in allConfigs
+      const index = allConfigs.findIndex((config) => {
+        if (config === null && solarConfig === null) return true;
+        if (config === null || solarConfig === null) return false;
+        return config.id === solarConfig.id ||
+               (config.capacity === solarConfig.capacity &&
+                config.orientation === solarConfig.orientation &&
+                config.tilt === solarConfig.tilt);
+      });
+      if (index !== -1 && index !== selectedConfig) {
+        setSelectedConfig(index);
+      }
+    }
+  }, [solarConfig, allConfigs]);
+
   // Use current solar config or selected config
   const currentConfig: SolarConfig | null = solarConfig !== undefined ? solarConfig : allConfigs[selectedConfig];
 
@@ -63,8 +81,6 @@ export function SolarCalculator() {
       </Card>
     );
   }
-
-  if (!analysis) return null;
 
   return (
     <div className="space-y-6">
