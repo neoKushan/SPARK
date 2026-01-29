@@ -1,4 +1,4 @@
-import { differenceInHours, startOfDay, endOfDay, isWithinInterval } from 'date-fns';
+import { differenceInHours, startOfDay } from 'date-fns';
 import type {
   ConsumptionDataPoint,
   BatteryConfig,
@@ -6,7 +6,7 @@ import type {
   BatteryAnalysis,
   BatteryState,
 } from '@/types/consumption';
-import { matchRatePeriod, calculateTotalCost } from './pricingCalculator';
+import { matchRatePeriod } from './pricingCalculator';
 
 /**
  * Simulate battery usage and calculate savings
@@ -35,7 +35,6 @@ export function simulateBattery(
   // Find cheap and expensive rates
   const rateValues = ratePeriods.map((p) => p.ratePerKwh);
   const cheapRate = Math.min(...rateValues);
-  const expensiveRate = Math.max(...rateValues);
   const cheapPeriod = ratePeriods.find((p) => p.ratePerKwh === cheapRate)!;
 
   // Simulate each 30-minute interval
@@ -131,7 +130,7 @@ export function simulateBattery(
   const peakShavingBenefit = peakWithoutBattery * 0.2; // Rough estimate of 20% peak reduction
 
   // Calculate winter coverage
-  const winterCoverage = calculateWinterCoverage(data, states, batteryConfig);
+  const winterCoverage = calculateWinterCoverage(data, states);
 
   return {
     batteryConfig,
@@ -152,8 +151,7 @@ export function simulateBattery(
  */
 function calculateWinterCoverage(
   data: ConsumptionDataPoint[],
-  states: BatteryState[],
-  batteryConfig: BatteryConfig
+  states: BatteryState[]
 ): {
   averageDailyCoverage: number;
   minimumCoverage: number;
@@ -234,8 +232,6 @@ export function recommendBatterySize(
   const dataIntervals = data.length;
   const intervalsPerDay = 48;
   const days = dataIntervals / intervalsPerDay;
-  const totalConsumption = data.reduce((sum, p) => sum + p.consumption, 0);
-  const avgDailyConsumption = totalConsumption / days;
 
   // Find cheap rate period
   const cheapRate = Math.min(...ratePeriods.map((p) => p.ratePerKwh));

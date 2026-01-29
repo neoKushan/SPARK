@@ -119,11 +119,13 @@ export function CsvUploader() {
                 id="csv-upload"
                 disabled={isLoading}
               />
-              <Button asChild variant="outline" disabled={isLoading}>
-                <label htmlFor="csv-upload" className="cursor-pointer">
-                  <FileText className="w-4 h-4 mr-2" />
-                  Choose File
-                </label>
+              <Button
+                variant="outline"
+                disabled={isLoading}
+                onClick={() => document.getElementById('csv-upload')?.click()}
+              >
+                <FileText className="w-4 h-4 mr-2" />
+                Choose File
               </Button>
             </div>
           </div>

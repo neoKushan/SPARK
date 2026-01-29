@@ -42,7 +42,7 @@ export async function parseEnergyConsumptionCsv(file: File): Promise<ParseResult
             const rowNumber = i + 2; // +2 because of header row and 1-based indexing
 
             try {
-              const parsed = parseRow(row, rowNumber);
+              const parsed = parseRow(row);
               if (parsed) {
                 parsedData.push(parsed);
               }
@@ -101,7 +101,7 @@ export async function parseEnergyConsumptionCsv(file: File): Promise<ParseResult
 /**
  * Parse a single CSV row into a ConsumptionDataPoint
  */
-function parseRow(row: RawCsvRow, rowNumber: number): ConsumptionDataPoint | null {
+function parseRow(row: RawCsvRow): ConsumptionDataPoint | null {
   // Parse consumption
   const consumptionStr = row['Consumption (kwh)'];
   if (!consumptionStr || consumptionStr.trim() === '') {

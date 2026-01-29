@@ -1,9 +1,8 @@
-import { format, parse } from 'date-fns';
+import { format } from 'date-fns';
 import type {
   ConsumptionDataPoint,
   RatePeriod,
   CostDataPoint,
-  AggregatedData,
 } from '@/types/consumption';
 
 /**
@@ -109,10 +108,10 @@ export function calculateCostBreakdown(
  * Add cost information to aggregated data
  */
 export function addCostsToAggregatedData(
-  aggregated: AggregatedData[],
+  aggregated: any[],
   rawData: ConsumptionDataPoint[],
   ratePeriods: RatePeriod[]
-): AggregatedData[] {
+): any[] {
   return aggregated.map((agg) => {
     // Find all raw data points that fall within this aggregated period
     // This is a simplified approach - for production, you'd want more precise date matching
@@ -126,7 +125,13 @@ export function addCostsToAggregatedData(
     }
 
     const totalCost = calculateTotalCost(periodData, ratePeriods);
-    const costByRate = calculateCostBreakdown(periodData, ratePeriods);
+    const costBreakdownMap = calculateCostBreakdown(periodData, ratePeriods);
+
+    // Convert Map to simple object for easier serialization
+    const costByRate = new Map<string, number>();
+    costBreakdownMap.forEach((value, key) => {
+      costByRate.set(key, value.cost);
+    });
 
     return {
       ...agg,

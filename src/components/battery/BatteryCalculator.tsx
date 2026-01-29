@@ -1,7 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Battery, TrendingUp, Calendar, Zap } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { useDataStore } from '@/context/DataContext';
 import { simulateBattery, getBatteryPresets, recommendBatterySize } from '@/utils/batterySimulator';
 import { format } from 'date-fns';

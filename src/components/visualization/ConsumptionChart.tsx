@@ -100,9 +100,6 @@ export function ConsumptionChart({
     );
   }
 
-  const ChartComponent = showArea ? AreaChart : LineChart;
-  const DataComponent = showArea ? Area : Line;
-
   return (
     <Card>
       <CardHeader>
@@ -119,34 +116,25 @@ export function ConsumptionChart({
       </CardHeader>
       <CardContent>
         <ResponsiveContainer width="100%" height={400}>
-          <ChartComponent
-            data={chartData}
-            margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-          >
-            <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-            <XAxis
-              dataKey="timestamp"
-              tickFormatter={formatXAxis}
-              className="text-xs"
-              stroke="hsl(var(--muted-foreground))"
-            />
-            <YAxis
-              label={{ value: 'kWh', angle: -90, position: 'insideLeft' }}
-              className="text-xs"
-              stroke="hsl(var(--muted-foreground))"
-            />
-            <Tooltip content={<CustomTooltip />} />
-            <Legend />
-            <DataComponent
-              type="monotone"
-              dataKey="consumption"
-              stroke="hsl(var(--primary))"
-              fill="hsl(var(--primary))"
-              fillOpacity={showArea ? 0.3 : 1}
-              name="Consumption (kWh)"
-              strokeWidth={2}
-            />
-          </ChartComponent>
+          {showArea ? (
+            <AreaChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+              <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+              <XAxis dataKey="timestamp" tickFormatter={formatXAxis} className="text-xs" stroke="hsl(var(--muted-foreground))" />
+              <YAxis label={{ value: 'kWh', angle: -90, position: 'insideLeft' }} className="text-xs" stroke="hsl(var(--muted-foreground))" />
+              <Tooltip content={<CustomTooltip />} />
+              <Legend />
+              <Area type="monotone" dataKey="consumption" stroke="hsl(var(--primary))" fill="hsl(var(--primary))" fillOpacity={0.3} name="Consumption (kWh)" strokeWidth={2} />
+            </AreaChart>
+          ) : (
+            <LineChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+              <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+              <XAxis dataKey="timestamp" tickFormatter={formatXAxis} className="text-xs" stroke="hsl(var(--muted-foreground))" />
+              <YAxis label={{ value: 'kWh', angle: -90, position: 'insideLeft' }} className="text-xs" stroke="hsl(var(--muted-foreground))" />
+              <Tooltip content={<CustomTooltip />} />
+              <Legend />
+              <Line type="monotone" dataKey="consumption" stroke="hsl(var(--primary))" name="Consumption (kWh)" strokeWidth={2} />
+            </LineChart>
+          )}
         </ResponsiveContainer>
       </CardContent>
     </Card>

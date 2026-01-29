@@ -55,7 +55,7 @@ export function aggregateByTimeFrame(
 export function aggregateByDay(data: ConsumptionDataPoint[]): AggregatedData[] {
   const grouped = groupBy(data, (point) => format(startOfDay(point.start), 'yyyy-MM-dd'));
   return Array.from(grouped.entries())
-    .map(([date, points]) => createAggregatedData(date, points, 'day'))
+    .map(([date, points]) => createAggregatedData(date, points))
     .sort((a, b) => a.period.localeCompare(b.period));
 }
 
@@ -71,7 +71,7 @@ export function aggregateByWeek(data: ConsumptionDataPoint[]): AggregatedData[] 
   return Array.from(grouped.entries())
     .map(([week, points]) => {
       const weekLabel = `Week of ${week}`;
-      return createAggregatedData(weekLabel, points, 'week');
+      return createAggregatedData(weekLabel, points);
     })
     .sort((a, b) => a.period.localeCompare(b.period));
 }
@@ -84,7 +84,7 @@ export function aggregateByMonth(data: ConsumptionDataPoint[]): AggregatedData[]
   return Array.from(grouped.entries())
     .map(([month, points]) => {
       const monthLabel = format(new Date(month + '-01'), 'MMM yyyy');
-      return createAggregatedData(monthLabel, points, 'month');
+      return createAggregatedData(monthLabel, points);
     })
     .sort((a, b) => a.period.localeCompare(b.period));
 }
@@ -95,7 +95,7 @@ export function aggregateByMonth(data: ConsumptionDataPoint[]): AggregatedData[]
 export function aggregateByYear(data: ConsumptionDataPoint[]): AggregatedData[] {
   const grouped = groupBy(data, (point) => format(startOfYear(point.start), 'yyyy'));
   return Array.from(grouped.entries())
-    .map(([year, points]) => createAggregatedData(year, points, 'year'))
+    .map(([year, points]) => createAggregatedData(year, points))
     .sort((a, b) => a.period.localeCompare(b.period));
 }
 
@@ -107,7 +107,7 @@ export function aggregateAll(data: ConsumptionDataPoint[]): AggregatedData {
   const end = data[data.length - 1].end;
   const days = differenceInDays(end, start);
   const period = `${format(start, 'MMM dd, yyyy')} - ${format(end, 'MMM dd, yyyy')} (${days} days)`;
-  return createAggregatedData(period, data, 'all');
+  return createAggregatedData(period, data);
 }
 
 /**
@@ -137,8 +137,7 @@ function groupBy<T>(
  */
 function createAggregatedData(
   period: string,
-  points: ConsumptionDataPoint[],
-  timeFrame: TimeFrame
+  points: ConsumptionDataPoint[]
 ): AggregatedData {
   const totalConsumption = points.reduce((sum, p) => sum + p.consumption, 0);
   const peakConsumption = Math.max(...points.map((p) => p.consumption));
@@ -247,7 +246,7 @@ export function getHourlyBreakdown(data: ConsumptionDataPoint[], date: Date): Ag
   const grouped = groupBy(dayData, (point) => format(point.start, 'HH:00'));
 
   return Array.from(grouped.entries())
-    .map(([hour, points]) => createAggregatedData(hour, points, 'day'))
+    .map(([hour, points]) => createAggregatedData(hour, points))
     .sort((a, b) => a.period.localeCompare(b.period));
 }
 
