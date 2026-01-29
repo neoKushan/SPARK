@@ -1,11 +1,12 @@
 import { useMemo, useState } from 'react';
-import { Calendar, TrendingUp, BarChart3, DollarSign, Battery } from 'lucide-react';
+import { Calendar, TrendingUp, BarChart3, DollarSign, Battery, Sun } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ConsumptionChart } from './ConsumptionChart';
 import { PricingOverview } from '../pricing/PricingOverview';
 import { BatteryCalculator } from '../battery/BatteryCalculator';
+import { SolarCalculator } from '../solar/SolarCalculator';
 import { useDataStore } from '@/context/DataContext';
 import { aggregateByTimeFrame, calculateStatistics } from '@/utils/aggregationUtils';
 import { format } from 'date-fns';
@@ -61,7 +62,7 @@ export function Dashboard() {
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-3 lg:w-auto">
+        <TabsList className="grid w-full grid-cols-4 lg:w-auto">
           <TabsTrigger value="consumption" className="gap-2">
             <BarChart3 className="w-4 h-4" />
             Consumption
@@ -73,6 +74,10 @@ export function Dashboard() {
           <TabsTrigger value="battery" className="gap-2">
             <Battery className="w-4 h-4" />
             Battery
+          </TabsTrigger>
+          <TabsTrigger value="solar" className="gap-2">
+            <Sun className="w-4 h-4" />
+            Solar
           </TabsTrigger>
         </TabsList>
 
@@ -230,6 +235,11 @@ export function Dashboard() {
         {/* Battery Tab */}
         <TabsContent value="battery">
           <BatteryCalculator />
+        </TabsContent>
+
+        {/* Solar Tab */}
+        <TabsContent value="solar">
+          <SolarCalculator />
         </TabsContent>
       </Tabs>
     </div>
