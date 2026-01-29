@@ -18,7 +18,7 @@ import { useDataStore } from '@/context/DataContext';
 import { simulateSolarWithBattery } from '@/utils/solarSimulator';
 import { calculateTotalCost } from '@/utils/pricingCalculator';
 import { encodeStateToUrl, type ConsumptionSummary } from '@/utils/urlState';
-import { differenceInDays } from 'date-fns';
+import { differenceInDays, format } from 'date-fns';
 
 export function CombinedAnalysis() {
   const {
@@ -31,6 +31,26 @@ export function CombinedAnalysis() {
 
   const [copied, setCopied] = useState(false);
   const isSharedConfig = fileName?.includes('Shared Configuration');
+
+  // Calculate consumption summary for display
+  const consumptionSummary = useMemo(() => {
+    if (consumptionData.length === 0) return null;
+    const firstPoint = consumptionData[0];
+    const lastPoint = consumptionData[consumptionData.length - 1];
+    const totalDays = Math.max(1, differenceInDays(lastPoint.end, firstPoint.start));
+    const totalConsumption = consumptionData.reduce((sum, point) => sum + point.consumption, 0);
+    const avgDailyConsumption = totalConsumption / totalDays;
+    const annualConsumption = avgDailyConsumption * 365;
+
+    return {
+      avgDailyConsumption,
+      annualConsumption,
+      totalDays,
+      totalConsumption,
+      dateStart: firstPoint.start,
+      dateEnd: lastPoint.end,
+    };
+  }, [consumptionData]);
 
   // Calculate baseline costs (no solar/battery)
   const baselineCost = useMemo(() => {
@@ -45,20 +65,14 @@ export function CombinedAnalysis() {
   }, [consumptionData, solarConfig, batteryConfig, ratePeriods]);
 
   const handleShare = () => {
-    // Calculate consumption summary
-    let consumptionSummary: ConsumptionSummary | undefined;
-    if (consumptionData.length > 0) {
-      const firstPoint = consumptionData[0];
-      const lastPoint = consumptionData[consumptionData.length - 1];
-      const totalDays = Math.max(1, differenceInDays(lastPoint.end, firstPoint.start));
-      const totalConsumption = consumptionData.reduce((sum, point) => sum + point.consumption, 0);
-      const avgDailyConsumption = totalConsumption / totalDays;
-
-      consumptionSummary = {
-        avgDailyConsumption,
-        totalDays,
-        dateStart: firstPoint.start.toISOString(),
-        dateEnd: lastPoint.end.toISOString(),
+    // Prepare consumption summary for URL encoding
+    let urlConsumptionSummary: ConsumptionSummary | undefined;
+    if (consumptionSummary) {
+      urlConsumptionSummary = {
+        avgDailyConsumption: consumptionSummary.avgDailyConsumption,
+        totalDays: consumptionSummary.totalDays,
+        dateStart: consumptionSummary.dateStart.toISOString(),
+        dateEnd: consumptionSummary.dateEnd.toISOString(),
       };
     }
 
@@ -66,7 +80,7 @@ export function CombinedAnalysis() {
       ratePeriods,
       batteryConfig: batteryConfig || undefined,
       solarConfig: solarConfig || undefined,
-      consumptionSummary,
+      consumptionSummary: urlConsumptionSummary,
     });
 
     const shareUrl = `${window.location.origin}${window.location.pathname}?${queryString}`;
@@ -151,19 +165,47 @@ export function CombinedAnalysis() {
       </div>
 
       {/* Shared Configuration Notice */}
-      {isSharedConfig && (
+      {isSharedConfig && consumptionSummary && (
         <Card className="border-blue-500/20 bg-blue-500/5">
           <CardContent className="pt-6">
             <div className="flex items-start gap-3">
               <Info className="w-5 h-5 text-blue-500 mt-0.5 flex-shrink-0" />
-              <div className="space-y-1">
-                <p className="font-medium text-blue-700 dark:text-blue-300">
-                  Viewing Shared Configuration
-                </p>
-                <p className="text-sm text-blue-600 dark:text-blue-400">
-                  This analysis uses synthetic consumption data based on shared average usage patterns.
-                  Results are estimates. Upload your own CSV data for accurate personalized analysis.
-                </p>
+              <div className="space-y-3">
+                <div>
+                  <p className="font-medium text-blue-700 dark:text-blue-300">
+                    Viewing Shared Configuration
+                  </p>
+                  <p className="text-sm text-blue-600 dark:text-blue-400 mt-1">
+                    This analysis uses synthetic consumption data based on shared average usage patterns.
+                    Results are estimates. Upload your own CSV data for accurate personalized analysis.
+                  </p>
+                </div>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 pt-2 border-t border-blue-500/20">
+                  <div>
+                    <div className="text-xs text-blue-600 dark:text-blue-400">Annual Usage</div>
+                    <div className="font-semibold text-blue-700 dark:text-blue-300">
+                      {consumptionSummary.annualConsumption.toLocaleString(undefined, { maximumFractionDigits: 0 })} kWh
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-xs text-blue-600 dark:text-blue-400">Daily Average</div>
+                    <div className="font-semibold text-blue-700 dark:text-blue-300">
+                      {consumptionSummary.avgDailyConsumption.toFixed(1)} kWh
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-xs text-blue-600 dark:text-blue-400">Data Period</div>
+                    <div className="font-semibold text-blue-700 dark:text-blue-300">
+                      {consumptionSummary.totalDays} days
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-xs text-blue-600 dark:text-blue-400">Date Range</div>
+                    <div className="font-semibold text-blue-700 dark:text-blue-300 text-xs">
+                      {format(consumptionSummary.dateStart, 'MMM yyyy')} - {format(consumptionSummary.dateEnd, 'MMM yyyy')}
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </CardContent>
