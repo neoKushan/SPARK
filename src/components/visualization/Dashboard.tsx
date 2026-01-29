@@ -14,8 +14,13 @@ import { format } from 'date-fns';
 import type { TimeFrame } from '@/types/consumption';
 
 export function Dashboard() {
-  const { consumptionData, selectedTimeFrame, setSelectedTimeFrame, dateRange, ratePeriods } = useDataStore();
-  const [activeTab, setActiveTab] = useState('consumption');
+  const { consumptionData, selectedTimeFrame, setSelectedTimeFrame, dateRange, ratePeriods, fileName } = useDataStore();
+
+  // Detect if using synthetic/example data
+  const isSyntheticData = fileName?.includes('Synthetic Data') || fileName?.includes('Example:');
+
+  // Set initial tab based on data type
+  const [activeTab, setActiveTab] = useState(isSyntheticData ? 'combined' : 'consumption');
   const [viewMode, setViewMode] = useState<'kwh' | 'cost'>('kwh');
 
   // Calculate statistics
@@ -64,19 +69,19 @@ export function Dashboard() {
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="grid w-full grid-cols-5 lg:w-auto lg:grid-cols-5">
-          <TabsTrigger value="consumption" className="gap-2">
+          <TabsTrigger value="consumption" className="gap-2" disabled={isSyntheticData}>
             <BarChart3 className="w-4 h-4" />
             Consumption
           </TabsTrigger>
-          <TabsTrigger value="pricing" className="gap-2">
+          <TabsTrigger value="pricing" className="gap-2" disabled={isSyntheticData}>
             <DollarSign className="w-4 h-4" />
             Pricing
           </TabsTrigger>
-          <TabsTrigger value="battery" className="gap-2">
+          <TabsTrigger value="battery" className="gap-2" disabled={isSyntheticData}>
             <Battery className="w-4 h-4" />
             Battery
           </TabsTrigger>
-          <TabsTrigger value="solar" className="gap-2">
+          <TabsTrigger value="solar" className="gap-2" disabled={isSyntheticData}>
             <Sun className="w-4 h-4" />
             Solar
           </TabsTrigger>

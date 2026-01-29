@@ -1,10 +1,11 @@
 import { useCallback, useState } from 'react';
-import { Upload, FileText, AlertCircle, CheckCircle, ExternalLink, ChevronDown, ChevronUp } from 'lucide-react';
+import { Upload, FileText, AlertCircle, CheckCircle, ExternalLink, ChevronDown, ChevronUp, Sparkles } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { parseEnergyConsumptionCsv, validateFile } from '@/utils/csvParser';
 import { useDataStore } from '@/context/DataContext';
 import { format } from 'date-fns';
+import { exampleProfiles, generateExampleConsumption } from '@/utils/exampleProfiles';
 
 export function CsvUploader() {
   const [isDragging, setIsDragging] = useState(false);
@@ -82,6 +83,26 @@ export function CsvUploader() {
     [handleFile]
   );
 
+  const handleExampleProfile = useCallback(
+    (profileId: string) => {
+      const profile = exampleProfiles.find(p => p.id === profileId);
+      if (!profile) return;
+
+      setIsLoading(true);
+      setError(null);
+
+      try {
+        const data = generateExampleConsumption(profile);
+        setConsumptionData(data, `Example: ${profile.name}`);
+      } catch (err) {
+        setError('Failed to generate example data');
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [setConsumptionData]
+  );
+
   return (
     <Card className="w-full max-w-2xl mx-auto">
       <CardHeader>
@@ -153,6 +174,45 @@ export function CsvUploader() {
               </div>
             </div>
           )}
+        </div>
+
+        {/* Example Profiles */}
+        <div className="mb-6">
+          <div className="flex items-center gap-2 mb-3">
+            <Sparkles className="w-4 h-4 text-primary" />
+            <h3 className="font-medium">Try Example Data</h3>
+          </div>
+          <div className="grid gap-3 md:grid-cols-3">
+            {exampleProfiles.map((profile) => (
+              <button
+                key={profile.id}
+                onClick={() => handleExampleProfile(profile.id)}
+                disabled={isLoading}
+                className="p-4 text-left border rounded-lg transition-all hover:border-primary hover:bg-primary/5 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <div className="text-2xl mb-2">{profile.icon}</div>
+                <div className="font-medium">{profile.name}</div>
+                <div className="text-xs text-muted-foreground mt-1">
+                  {profile.description}
+                </div>
+                <div className="text-xs text-primary mt-2">
+                  ~{Math.round(profile.avgDailyConsumption * 365)} kWh/year
+                </div>
+              </button>
+            ))}
+          </div>
+          <p className="text-xs text-muted-foreground mt-3">
+            Example profiles use 12 months of realistic synthetic data to demonstrate the tool
+          </p>
+        </div>
+
+        <div className="relative mb-6">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t border-muted"></div>
+          </div>
+          <div className="relative flex justify-center text-xs uppercase">
+            <span className="bg-background px-2 text-muted-foreground">Or upload your own data</span>
+          </div>
         </div>
 
         {!fileName ? (
