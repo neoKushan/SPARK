@@ -190,76 +190,12 @@ export function CsvUploader() {
       {/* Upload Card */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-2xl">Upload Energy Data</CardTitle>
+          <CardTitle className="text-2xl">Add Energy Data</CardTitle>
           <CardDescription>
-            Upload your energy consumption CSV file (format: Consumption (kwh), Start, End)
+            Choose from example profiles, enter your annual usage, or upload your own CSV file
           </CardDescription>
         </CardHeader>
         <CardContent>
-        {/* Octopus Energy Export Instructions */}
-        <div className="mb-6">
-          <button
-            onClick={() => setShowInstructions(!showInstructions)}
-            className="flex items-center gap-2 text-sm font-medium text-primary hover:underline"
-          >
-            {showInstructions ? (
-              <ChevronUp className="w-4 h-4" />
-            ) : (
-              <ChevronDown className="w-4 h-4" />
-            )}
-            How to export data from Octopus Energy
-          </button>
-
-          {showInstructions && (
-            <div className="mt-4 p-4 bg-muted/50 rounded-lg space-y-4 text-sm">
-              <div>
-                <p className="font-medium mb-2">Step 1: Log in to your Octopus Energy account</p>
-                <a
-                  href="https://octopus.energy/dashboard/login/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-primary hover:underline flex items-center gap-1"
-                >
-                  https://octopus.energy/dashboard/login/
-                  <ExternalLink className="w-3 h-3" />
-                </a>
-              </div>
-
-              <div>
-                <p className="font-medium mb-2">Step 2: Navigate to My Energy</p>
-                <p className="text-muted-foreground">
-                  From your dashboard, click on "My Energy" in the navigation menu.
-                </p>
-              </div>
-
-              <div>
-                <p className="font-medium mb-2">Step 3: Download your data</p>
-                <ol className="list-decimal list-inside space-y-1 text-muted-foreground ml-2">
-                  <li>Scroll down to the "Get your energy geek on" section</li>
-                  <li>Select "Electricity" from the dropdown</li>
-                  <li>Choose your date range (you can go back up to 2 years)</li>
-                  <li>Select "30 min" as the interval</li>
-                  <li>Click "Download CSV"</li>
-                </ol>
-              </div>
-
-              <div>
-                <p className="font-medium mb-2">Step 4: Upload the file</p>
-                <p className="text-muted-foreground">
-                  Once downloaded, drag and drop the CSV file below or click to browse for it.
-                </p>
-              </div>
-
-              <div className="p-3 bg-blue-500/10 border border-blue-500/20 rounded text-xs">
-                <p className="font-medium text-blue-700 dark:text-blue-300 mb-1">💡 Tip</p>
-                <p className="text-blue-600 dark:text-blue-400">
-                  For best results, download at least 1-2 months of data to get accurate battery recommendations and cost analysis.
-                </p>
-              </div>
-            </div>
-          )}
-        </div>
-
         {/* Example Profiles */}
         <div className="mb-6">
           <div className="flex items-center gap-2 mb-3">
@@ -336,6 +272,70 @@ export function CsvUploader() {
           <div className="relative flex justify-center text-xs uppercase">
             <span className="bg-background px-2 text-muted-foreground">Or upload your own data</span>
           </div>
+        </div>
+
+        {/* Octopus Energy Export Instructions */}
+        <div className="mb-6">
+          <button
+            onClick={() => setShowInstructions(!showInstructions)}
+            className="flex items-center gap-2 text-sm font-medium text-primary hover:underline"
+          >
+            {showInstructions ? (
+              <ChevronUp className="w-4 h-4" />
+            ) : (
+              <ChevronDown className="w-4 h-4" />
+            )}
+            How to export data from Octopus Energy
+          </button>
+
+          {showInstructions && (
+            <div className="mt-4 p-4 bg-muted/50 rounded-lg space-y-4 text-sm">
+              <div>
+                <p className="font-medium mb-2">Step 1: Log in to your Octopus Energy account</p>
+                <a
+                  href="https://octopus.energy/dashboard/login/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-primary hover:underline flex items-center gap-1"
+                >
+                  https://octopus.energy/dashboard/login/
+                  <ExternalLink className="w-3 h-3" />
+                </a>
+              </div>
+
+              <div>
+                <p className="font-medium mb-2">Step 2: Navigate to My Energy</p>
+                <p className="text-muted-foreground">
+                  From your dashboard, click on "My Energy" in the navigation menu.
+                </p>
+              </div>
+
+              <div>
+                <p className="font-medium mb-2">Step 3: Download your data</p>
+                <ol className="list-decimal list-inside space-y-1 text-muted-foreground ml-2">
+                  <li>Scroll down to the "Get your energy geek on" section</li>
+                  <li>Select "Electricity" from the dropdown</li>
+                  <li>Choose your date range (you can go back up to 2 years)</li>
+                  <li>Select "30 min" as the interval</li>
+                  <li>Click "Download CSV"</li>
+                </ol>
+              </div>
+
+              <div>
+                <p className="font-medium mb-2">Step 4: Upload the file</p>
+                <p className="text-muted-foreground">
+                  Once downloaded, drag and drop the CSV file below or click to browse for it.
+                </p>
+              </div>
+
+              <div className="p-3 bg-blue-500/10 border border-blue-500/20 rounded text-xs">
+                <p className="font-medium text-blue-700 dark:text-blue-300 mb-1">💡 Tip</p>
+                <p className="text-blue-600 dark:text-blue-400">
+                  For best results, download at least 1-2 months of data to get accurate battery recommendations and cost analysis.
+                </p>
+              </div>
+            </div>
+          )}
         </div>
 
         {!fileName ? (

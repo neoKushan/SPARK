@@ -1,8 +1,9 @@
 import { useMemo, useState } from 'react';
-import { Calendar, TrendingUp, BarChart3, DollarSign, Battery, Sun, Layers } from 'lucide-react';
+import { Calendar, TrendingUp, BarChart3, DollarSign, Battery, Sun, Layers, Github } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { ConsumptionChart } from './ConsumptionChart';
 import { PricingOverview } from '../pricing/PricingOverview';
 import { BatteryCalculator } from '../battery/BatteryCalculator';
@@ -196,48 +197,71 @@ export function Dashboard() {
 
           {/* Aggregated Data Table */}
           {aggregatedData.length > 0 && selectedTimeFrame !== 'all' && (
-            <Card>
-              <CardHeader>
-                <CardTitle>
-                  {timeFrames.find((t) => t.value === selectedTimeFrame)?.label} Breakdown
-                </CardTitle>
-                <CardDescription>
-                  Consumption aggregated by {selectedTimeFrame}
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="relative w-full overflow-auto">
-                  <table className="w-full caption-bottom text-sm">
-                    <thead className="border-b">
-                      <tr className="border-b transition-colors hover:bg-muted/50">
-                        <th className="h-12 px-4 text-left align-middle font-medium">Period</th>
-                        <th className="h-12 px-4 text-left align-middle font-medium">Total (kWh)</th>
-                        <th className="h-12 px-4 text-left align-middle font-medium">Average (kWh)</th>
-                        <th className="h-12 px-4 text-left align-middle font-medium">Peak (kWh)</th>
-                        <th className="h-12 px-4 text-left align-middle font-medium">Peak Time</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {aggregatedData.map((row, index) => (
-                        <tr
-                          key={index}
-                          className="border-b transition-colors hover:bg-muted/50"
-                        >
-                          <td className="p-4 align-middle">{row.period}</td>
-                          <td className="p-4 align-middle">{row.totalConsumption.toFixed(2)}</td>
-                          <td className="p-4 align-middle">{row.averageConsumption.toFixed(3)}</td>
-                          <td className="p-4 align-middle">{row.peakConsumption.toFixed(3)}</td>
-                          <td className="p-4 align-middle">
-                            {format(row.peakTime, 'MMM dd, HH:mm')}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </CardContent>
-            </Card>
+            <Accordion type="single" collapsible defaultValue="breakdown">
+              <AccordionItem value="breakdown">
+                <Card>
+                  <CardHeader>
+                    <AccordionTrigger className="hover:no-underline [&[data-state=open]>div]:mb-0">
+                      <div className="mb-2">
+                        <CardTitle>
+                          {timeFrames.find((t) => t.value === selectedTimeFrame)?.label} Breakdown
+                        </CardTitle>
+                        <CardDescription>
+                          Consumption aggregated by {selectedTimeFrame}
+                        </CardDescription>
+                      </div>
+                    </AccordionTrigger>
+                  </CardHeader>
+                  <AccordionContent>
+                    <CardContent>
+                      <div className="relative w-full overflow-auto">
+                        <table className="w-full caption-bottom text-sm">
+                          <thead className="border-b">
+                            <tr className="border-b transition-colors hover:bg-muted/50">
+                              <th className="h-12 px-4 text-left align-middle font-medium">Period</th>
+                              <th className="h-12 px-4 text-left align-middle font-medium">Total (kWh)</th>
+                              <th className="h-12 px-4 text-left align-middle font-medium">Average (kWh)</th>
+                              <th className="h-12 px-4 text-left align-middle font-medium">Peak (kWh)</th>
+                              <th className="h-12 px-4 text-left align-middle font-medium">Peak Time</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {aggregatedData.map((row, index) => (
+                              <tr
+                                key={index}
+                                className="border-b transition-colors hover:bg-muted/50"
+                              >
+                                <td className="p-4 align-middle">{row.period}</td>
+                                <td className="p-4 align-middle">{row.totalConsumption.toFixed(2)}</td>
+                                <td className="p-4 align-middle">{row.averageConsumption.toFixed(3)}</td>
+                                <td className="p-4 align-middle">{row.peakConsumption.toFixed(3)}</td>
+                                <td className="p-4 align-middle">
+                                  {format(row.peakTime, 'MMM dd, HH:mm')}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </CardContent>
+                  </AccordionContent>
+                </Card>
+              </AccordionItem>
+            </Accordion>
           )}
+
+          {/* GitHub Link */}
+          <div className="flex justify-center pt-6">
+            <a
+              href="https://github.com/neoKushan/SPARK"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors"
+            >
+              <Github className="w-4 h-4" />
+              View on GitHub
+            </a>
+          </div>
         </TabsContent>
 
         {/* Pricing Tab */}
