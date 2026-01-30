@@ -1,4 +1,4 @@
-import { Moon, Sun, Zap, Upload } from 'lucide-react';
+import { Moon, Sun, Upload } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useDataStore } from '@/context/DataContext';
 
@@ -9,7 +9,7 @@ export function Header() {
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center">
         <div className="flex items-center gap-2">
-          <Zap className="w-8 h-8 text-primary" />
+          <img src="/logo.svg" alt="SPARK Logo" className="w-8 h-8" />
           <div>
             <h1 className="text-2xl font-bold">SPARK</h1>
             <p className="text-xs text-muted-foreground">Solar Planning And ROI Kit</p>
