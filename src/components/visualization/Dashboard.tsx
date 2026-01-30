@@ -197,7 +197,7 @@ export function Dashboard() {
 
           {/* Aggregated Data Table */}
           {aggregatedData.length > 0 && selectedTimeFrame !== 'all' && (
-            <Accordion type="single" collapsible defaultValue="breakdown">
+            <Accordion type="single" collapsible>
               <AccordionItem value="breakdown">
                 <Card>
                   <CardHeader>
@@ -249,19 +249,6 @@ export function Dashboard() {
               </AccordionItem>
             </Accordion>
           )}
-
-          {/* GitHub Link */}
-          <div className="flex justify-center pt-6">
-            <a
-              href="https://github.com/neoKushan/SPARK"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors"
-            >
-              <Github className="w-4 h-4" />
-              View on GitHub
-            </a>
-          </div>
         </TabsContent>
 
         {/* Pricing Tab */}
@@ -284,6 +271,19 @@ export function Dashboard() {
           <CombinedAnalysis />
         </TabsContent>
       </Tabs>
+
+      {/* GitHub Link */}
+      <div className="flex justify-center pt-6">
+        <a
+          href="https://github.com/neoKushan/SPARK"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors"
+        >
+          <Github className="w-4 h-4" />
+          View on GitHub
+        </a>
+      </div>
     </div>
   );
 }
