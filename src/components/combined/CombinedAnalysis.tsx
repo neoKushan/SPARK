@@ -32,6 +32,7 @@ export function CombinedAnalysis() {
     fileName,
     currentTariffId,
     customTariffName,
+    customStandingCharge,
   } = useDataStore();
 
   const [copied, setCopied] = useState(false);
@@ -43,12 +44,13 @@ export function CombinedAnalysis() {
       return {
         provider: 'Custom',
         name: customTariffName,
+        standingCharge: customStandingCharge,
       };
     }
     const tariffPresets = getTariffPresets();
     const tariff = tariffPresets.find((t) => t.id === currentTariffId);
-    return tariff ? { provider: tariff.provider, name: tariff.name } : null;
-  }, [currentTariffId, customTariffName]);
+    return tariff ? { provider: tariff.provider, name: tariff.name, standingCharge: tariff.standingCharge } : null;
+  }, [currentTariffId, customTariffName, customStandingCharge]);
 
   // Calculate consumption summary for display
   const consumptionSummary = useMemo(() => {
@@ -594,11 +596,20 @@ export function CombinedAnalysis() {
               </div>
             ))}
           </div>
-          {solarConfig && (
-            <div className="mt-3 pt-3 border-t text-sm text-muted-foreground">
-              Export Rate: {(exportRate * 100).toFixed(1)}p/kWh (configured in Pricing)
-            </div>
-          )}
+          <div className="mt-3 pt-3 border-t space-y-2 text-sm">
+            {currentTariff?.standingCharge !== undefined && (
+              <div className="flex items-center justify-between text-muted-foreground">
+                <span>Standing Charge:</span>
+                <span className="font-medium">{currentTariff.standingCharge.toFixed(1)}p/day</span>
+              </div>
+            )}
+            {solarConfig && (
+              <div className="flex items-center justify-between text-muted-foreground">
+                <span>Export Rate:</span>
+                <span className="font-medium">{(exportRate * 100).toFixed(1)}p/kWh</span>
+              </div>
+            )}
+          </div>
         </CardContent>
       </Card>
 
