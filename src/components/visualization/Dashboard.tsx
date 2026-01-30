@@ -13,6 +13,8 @@ import { useDataStore } from '@/context/DataContext';
 import { aggregateByTimeFrame, calculateStatistics } from '@/utils/aggregationUtils';
 import { format } from 'date-fns';
 import type { TimeFrame } from '@/types/consumption';
+import { trackTabSwitch } from '@/utils/analytics';
+import { PrivacyPolicy } from '@/components/privacy/PrivacyPolicy';
 
 export function Dashboard() {
   const { consumptionData, selectedTimeFrame, setSelectedTimeFrame, dateRange, ratePeriods, fileName } = useDataStore();
@@ -23,6 +25,11 @@ export function Dashboard() {
   // Set initial tab - shared configs go to summary, everything else to consumption
   const [activeTab, setActiveTab] = useState(isSharedConfig ? 'summary' : 'consumption');
   const [viewMode, setViewMode] = useState<'kwh' | 'cost'>('kwh');
+
+  const handleTabChange = (tab: string) => {
+    setActiveTab(tab);
+    trackTabSwitch(tab);
+  };
 
   // Calculate statistics
   const stats = useMemo(() => calculateStatistics(consumptionData), [consumptionData]);
@@ -68,7 +75,7 @@ export function Dashboard() {
       </div>
 
       {/* Tabs */}
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
+      <Tabs value={activeTab} onValueChange={handleTabChange}>
         <div className="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">
           <TabsList className="inline-flex w-auto min-w-full sm:min-w-0">
             <TabsTrigger value="consumption" className="gap-2 flex-shrink-0" disabled={isSharedConfig}>
@@ -272,8 +279,8 @@ export function Dashboard() {
         </TabsContent>
       </Tabs>
 
-      {/* GitHub Link */}
-      <div className="flex justify-center pt-6">
+      {/* Footer Links */}
+      <div className="flex justify-center items-center gap-4 pt-6">
         <a
           href="https://github.com/neoKushan/SPARK"
           target="_blank"
@@ -283,6 +290,8 @@ export function Dashboard() {
           <Github className="w-4 h-4" />
           View on GitHub
         </a>
+        <span className="text-muted-foreground">•</span>
+        <PrivacyPolicy />
       </div>
     </div>
   );

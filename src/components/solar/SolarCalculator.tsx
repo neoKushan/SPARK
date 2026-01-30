@@ -9,6 +9,7 @@ import {
 } from '@/utils/solarSimulator';
 import type { SolarConfig } from '@/types/consumption';
 import { SolarConfigurator } from './SolarConfigurator';
+import { trackSolarConfig } from '@/utils/analytics';
 
 export function SolarCalculator() {
   const {
@@ -77,7 +78,11 @@ export function SolarCalculator() {
 
   const handleConfigSelect = (index: number) => {
     setSelectedConfig(index);
-    setSolarConfig(allConfigs[index]);
+    const config = allConfigs[index];
+    setSolarConfig(config);
+    if (config) {
+      trackSolarConfig(config.capacity);
+    }
   };
 
   if (consumptionData.length === 0) {

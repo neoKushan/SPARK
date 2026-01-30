@@ -8,6 +8,7 @@ import { format } from 'date-fns';
 import type { BatteryConfig } from '@/types/consumption';
 import { BatteryConfigurator } from './BatteryConfigurator';
 import { BatteryComparison } from './BatteryComparison';
+import { trackBatteryConfig } from '@/utils/analytics';
 
 export function BatteryCalculator() {
   const {
@@ -77,7 +78,11 @@ export function BatteryCalculator() {
 
   const handleConfigSelect = (index: number) => {
     setSelectedConfig(index);
-    setBatteryConfig(allConfigs[index]);
+    const config = allConfigs[index];
+    setBatteryConfig(config);
+    if (config) {
+      trackBatteryConfig(config.capacity);
+    }
   };
 
   if (consumptionData.length === 0) {

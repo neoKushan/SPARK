@@ -21,6 +21,7 @@ import { calculateTotalCost } from '@/utils/pricingCalculator';
 import { encodeStateToUrl, type ConsumptionSummary } from '@/utils/urlState';
 import { differenceInDays, format } from 'date-fns';
 import { getTariffPresets } from '@/utils/tariffPresets';
+import { trackShareConfig } from '@/utils/analytics';
 
 export function CombinedAnalysis() {
   const {
@@ -131,6 +132,7 @@ export function CombinedAnalysis() {
 
     const shareUrl = `${window.location.origin}${window.location.pathname}?${queryString}`;
     navigator.clipboard.writeText(shareUrl);
+    trackShareConfig();
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };

@@ -10,6 +10,7 @@ import { format } from 'date-fns';
 import { exampleProfiles, generateExampleConsumption } from '@/utils/exampleProfiles';
 import { generateSyntheticConsumption, type ConsumptionSummary } from '@/utils/urlState';
 import { trackCsvUpload, trackExampleProfile, trackManualEntry } from '@/utils/analytics';
+import { PrivacyPolicy } from '@/components/privacy/PrivacyPolicy';
 
 export function CsvUploader() {
   const [isDragging, setIsDragging] = useState(false);
@@ -184,6 +185,11 @@ export function CsvUploader() {
                 <p className="text-sm text-muted-foreground">
                   All analysis happens entirely in your browser. Your energy data never leaves your device
                   and is not sent to any server. You can even use this tool offline after the initial page load.
+                </p>
+                <p className="text-sm text-muted-foreground mt-2">
+                  We use privacy-focused, self-hosted analytics to understand how the tool is used,
+                  but we don't collect any personal data, raw consumption data, or track individuals.
+                  See our privacy policy below for full details.
                 </p>
               </div>
             </div>
@@ -424,8 +430,8 @@ export function CsvUploader() {
       </CardContent>
     </Card>
 
-    {/* GitHub Link */}
-    <div className="flex justify-center pt-6">
+    {/* Footer Links */}
+    <div className="flex justify-center items-center gap-4 pt-6">
       <a
         href="https://github.com/neoKushan/SPARK"
         target="_blank"
@@ -435,6 +441,8 @@ export function CsvUploader() {
         <Github className="w-4 h-4" />
         View on GitHub
       </a>
+      <span className="text-muted-foreground">•</span>
+      <PrivacyPolicy />
     </div>
     </div>
   );

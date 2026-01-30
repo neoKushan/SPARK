@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { useDataStore } from '@/context/DataContext';
 import { getTariffPresets } from '@/utils/tariffPresets';
+import { trackTariffChange } from '@/utils/analytics';
 import type { RatePeriod } from '@/types/consumption';
 
 export function RateConfiguration() {
@@ -68,9 +69,11 @@ export function RateConfiguration() {
     if (tariffId === 'custom') {
       // Keep current rates but clear tariff ID to mark as custom
       setCustomTariff();
+      trackTariffChange('custom');
       return;
     }
     setTariff(tariffId);
+    trackTariffChange('preset');
   };
 
   return (
