@@ -43,20 +43,28 @@ export function SolarCalculator() {
   // Sync selectedConfig with the store's solarConfig
   useEffect(() => {
     if (solarConfig !== undefined) {
-      // Find the index of the current config in allConfigs
-      const index = allConfigs.findIndex((config) => {
-        if (config === null && solarConfig === null) return true;
-        if (config === null || solarConfig === null) return false;
-        return config.id === solarConfig.id ||
-               (config.capacity === solarConfig.capacity &&
-                config.orientation === solarConfig.orientation &&
-                config.tilt === solarConfig.tilt);
-      });
-      if (index !== -1 && index !== selectedConfig) {
-        setSelectedConfig(index);
+      // Check if current selection still matches solarConfig
+      const currentlySelected = allConfigs[selectedConfig];
+      const currentMatchesSolar =
+        (currentlySelected === null && solarConfig === null) ||
+        (currentlySelected !== null && solarConfig !== null && currentlySelected.id === solarConfig.id);
+
+      // Only search for new index if current selection doesn't match
+      if (!currentMatchesSolar) {
+        const index = allConfigs.findIndex((config) => {
+          if (config === null && solarConfig === null) return true;
+          if (config === null || solarConfig === null) return false;
+          return config.id === solarConfig.id ||
+                 (config.capacity === solarConfig.capacity &&
+                  config.orientation === solarConfig.orientation &&
+                  config.tilt === solarConfig.tilt);
+        });
+        if (index !== -1) {
+          setSelectedConfig(index);
+        }
       }
     }
-  }, [solarConfig]);
+  }, [solarConfig, allConfigs, selectedConfig]);
 
   // Use current solar config or selected config
   const currentConfig: SolarConfig | null = solarConfig !== undefined ? solarConfig : allConfigs[selectedConfig];

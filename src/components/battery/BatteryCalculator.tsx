@@ -44,20 +44,28 @@ export function BatteryCalculator() {
   // Sync selectedConfig with the store's batteryConfig
   useEffect(() => {
     if (batteryConfig !== undefined) {
-      // Find the index of the current config in allConfigs
-      const index = allConfigs.findIndex((config) => {
-        if (config === null && batteryConfig === null) return true;
-        if (config === null || batteryConfig === null) return false;
-        return config.id === batteryConfig.id ||
-               (config.capacity === batteryConfig.capacity &&
-                config.chargeRate === batteryConfig.chargeRate &&
-                config.dischargeRate === batteryConfig.dischargeRate);
-      });
-      if (index !== -1 && index !== selectedConfig) {
-        setSelectedConfig(index);
+      // Check if current selection still matches batteryConfig
+      const currentlySelected = allConfigs[selectedConfig];
+      const currentMatchesBattery =
+        (currentlySelected === null && batteryConfig === null) ||
+        (currentlySelected !== null && batteryConfig !== null && currentlySelected.id === batteryConfig.id);
+
+      // Only search for new index if current selection doesn't match
+      if (!currentMatchesBattery) {
+        const index = allConfigs.findIndex((config) => {
+          if (config === null && batteryConfig === null) return true;
+          if (config === null || batteryConfig === null) return false;
+          return config.id === batteryConfig.id ||
+                 (config.capacity === batteryConfig.capacity &&
+                  config.chargeRate === batteryConfig.chargeRate &&
+                  config.dischargeRate === batteryConfig.dischargeRate);
+        });
+        if (index !== -1) {
+          setSelectedConfig(index);
+        }
       }
     }
-  }, [batteryConfig]);
+  }, [batteryConfig, allConfigs, selectedConfig]);
 
   // Use current battery config or selected config
   const currentConfig: BatteryConfig | null = batteryConfig !== undefined ? batteryConfig : allConfigs[selectedConfig];
