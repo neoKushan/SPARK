@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react';
-import { Upload, FileText, AlertCircle, CheckCircle, ExternalLink, ChevronDown, ChevronUp, Sparkles, Shield, Calculator } from 'lucide-react';
+import { Upload, FileText, AlertCircle, CheckCircle, ExternalLink, ChevronDown, ChevronUp, Sparkles, Shield, Calculator, Github } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -419,6 +419,19 @@ export function CsvUploader() {
         )}
       </CardContent>
     </Card>
+
+    {/* GitHub Link */}
+    <div className="flex justify-center pt-6">
+      <a
+        href="https://github.com/neoKushan/SPARK"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors"
+      >
+        <Github className="w-4 h-4" />
+        View on GitHub
+      </a>
+    </div>
     </div>
   );
 }
