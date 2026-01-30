@@ -9,6 +9,7 @@ import { useDataStore } from '@/context/DataContext';
 import { format } from 'date-fns';
 import { exampleProfiles, generateExampleConsumption } from '@/utils/exampleProfiles';
 import { generateSyntheticConsumption, type ConsumptionSummary } from '@/utils/urlState';
+import { trackCsvUpload, trackExampleProfile, trackManualEntry } from '@/utils/analytics';
 
 export function CsvUploader() {
   const [isDragging, setIsDragging] = useState(false);
@@ -44,6 +45,7 @@ export function CsvUploader() {
         // Store data
         if (result.data) {
           setConsumptionData(result.data, file.name);
+          trackCsvUpload(); // Track successful CSV upload
         }
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Unknown error occurred');
@@ -98,6 +100,7 @@ export function CsvUploader() {
       try {
         const data = generateExampleConsumption(profile);
         setConsumptionData(data, `Example: ${profile.name}`);
+        trackExampleProfile(profile.id); // Track example profile selection
       } catch (err) {
         setError('Failed to generate example data');
       } finally {
@@ -133,6 +136,7 @@ export function CsvUploader() {
 
       const data = generateSyntheticConsumption(summary);
       setConsumptionData(data, `Manual Entry: ${annual.toLocaleString()} kWh/year`);
+      trackManualEntry(annual); // Track manual entry with rounded value
       setAnnualKwh('');
     } catch (err) {
       setError('Failed to generate consumption data');
